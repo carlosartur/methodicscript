@@ -1,0 +1,14 @@
+{
+  "name": "poirottranspiler",
+  "version": "0.0.1",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Carlos Artur Neubert Gonçalves",
+  "license": "MIT",
+  "description": "",
+  "node_modules": {
+      
+  }
+}

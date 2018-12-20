@@ -1,0 +1,125 @@
+###
+Comentários de múltiplas linhas, documentações
+###
+#comentários de linhas simples
+
+class Animal:
+    #sempre primeira linha não comentário, se não hover, vai extender classe object
+    extends Living
+
+    ###
+    traits: não existem traits em si, aqui devem ser usadas classes que serão usadas como se fossem traits. 
+    As últimas chamadas sempre sobrescrevem os métodos e atributos das anteriores, caso nomes coincidam, e nunca sobrescrevem da classe mãe
+    ###
+    traits Kinds, Planets, Live  
+    
+    ###
+    atributos públicos: internamente a única diferença entre os atributos públicos e privados é que
+    atributos públicos a linguagem gera um getter e um setter padrão,
+    e atributo privado, o getter e o setter tem que ser gerados manualmente, como no exemplo abaixo.
+    o transpiler vai sempre renomear todos os atributos como "attr_nome_do_atributo"
+    constantes devem ser sempre publicas, e a única diferença para outras variáveis é que o seu setter dispara um erro.
+    ###
+    public:
+        const kingdom = "Animalia"
+        
+        #getters e setters
+        attr name: 
+            get: method return this.name
+            set: method(value) this.name = value
+        
+        #valor padrão
+        attr height = 125 
+
+        #valor padrão, getters e setters
+        attr color = "brown":
+            get: method return this.color
+            set: method(value) this.color = value
+
+        #construtor padrão, se não for setado, será assim: os parametros serão recebidos em ordem que aparecem na classe, e serão setados conforme passados
+        method constructor(name, height, color, foot_number, size):
+            this.setParamsAsAttrs(name, height, color, foot_number, size)
+            super.constructor()
+
+        #se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
+        method bla:
+            print this.name
+        
+        #valor padrão de parametro
+        method blaWorld(worldILive = "Earth"):
+            #interpolação de strings, valores com $val{valor} e métodos ou códigos com $eval{código}
+            print "Hello, $val{worldILive}, I am $val{this.name}"
+            print "$eval{ 2 + 2 }"
+            return true
+        
+        method blaWorld2(worldILive, worldYouLive) 
+            print "Hello, $val{worldILive}, I am $val{this.name}"
+            return true
+    private:
+        attr foot_number:
+            get: method reuturn this.foot_number / 2
+            set: method(value) this.foot_number * 2
+        
+        attr size #totalmente privado, só acessível pelo próprio objeto
+
+#fora da classe, algumas coisas mudam
+var x = new Animal('Rex', 120, 'brown', 4, 150)
+#tipos primitivos, apenas booleanos, numeros e strings
+var y = 123.123, z = 'Abc', a = false
+
+#instruções de mais de uma linha devem ter contrabarra no fim de cada linha, exceto na última
+y = \
+   new Animal('Rex', 120, 'brown', 4, 150)
+
+#if e else
+if 1 == 2:
+    print 1
+elseif 100 > 200:
+    print 2
+else:
+    print 3
+
+ifnt 1 == 2:
+    print 'oi'
+
+#switch - não usar break, não é necessário.
+switch value:
+    is 1:
+        print 'is 1'
+    is 2:
+        print 'is 2'
+    another:
+        print 'is another'
+
+###
+laços de repetição
+###
+#for
+for var i = 0; i < 100; i++:
+    print i
+
+#foreach & arrays & dictionaries
+list = [1, 2, 3, 4]
+dict = [
+    abc = 'abc',
+    123 = '123',
+]
+
+for var i in list as val:
+    print "$val{val} is position $val{i} in list"
+
+for var i in dict as val:
+    print "$val{val} is position $val{i} in dict"
+
+#while
+while cond:
+    print 'oi'
+
+#do while
+repeat:
+    print 'oi'
+while cond
+
+#functions fora das classes, se não tiver return, retornará null
+function test(fistProp, secondProp = false):
+    return firstProp * secondProp
