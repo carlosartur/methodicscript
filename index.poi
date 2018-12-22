@@ -24,7 +24,7 @@ class Animal:
         const kingdom = "Animalia"
         
         #getters e setters
-        attr name: 
+        attr name:
             get: method return this.name
             set: method(value) this.name = value
         
@@ -55,6 +55,7 @@ class Animal:
         method blaWorld2(worldILive, worldYouLive) 
             print "Hello, $val{worldILive}, I am $val{this.name}"
             return true
+        
     private:
         attr foot_number:
             get: method reuturn this.foot_number / 2

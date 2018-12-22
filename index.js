@@ -1,7 +1,7 @@
 var fs = require('fs');
 
 var js_transpiled = [];
-
+var current_visibility = '';
 var is_comment = false;
 var inside_string = false;
 var block_stack = [];
@@ -19,41 +19,55 @@ var kinds_of_blocks = {
     },
     _attr: {
         must_be_child: true,
-        can_be_inside: ['_class', '_public', '_private']
+        can_be_inside: ['public', 'private']
     },
     _method: {
         must_be_child: true,
-        can_be_inside: ['_class', '_public', '_private']
+        can_be_inside: ['public', 'private']
     },
     _private: {
         must_be_child: true,
-        can_be_inside: ['_class'],
+        can_be_inside: ['class'],
         close: ''
     },
     _public: {
         must_be_child: true,
-        can_be_inside: ['_class'],
+        can_be_inside: ['class'],
         close: ''
     },
     _get: {
         must_be_child: true,
-        can_be_inside: ['_attr']
+        can_be_inside: ['attr']
     },
     _set: {
         must_be_child: true,
-        can_be_inside: ['_attr']
+        can_be_inside: ['attr']
     },
     _const: {
         must_be_child: true,
-        can_be_inside: ['_public']
+        can_be_inside: ['public']
     },
     _static: {
         must_be_child: true,
-        can_be_inside: ['_class'],
+        can_be_inside: ['class'],
         close: ''
     }
 };
 
+var print = function () {
+    switch (arguments.length) {
+        case 0:
+            console.log();
+            return;
+        case 1:
+            console.log(arguments[0]);
+            return;
+        default:
+            let args = [...arguments];
+            console.log(args);
+            return;
+    }
+}
 
 class Block {
     constructor (type, name) {
@@ -75,16 +89,45 @@ class Block {
         var ret = '';
         if (this.type == 'class') {
             ret += this.getConstructor();
+            current_visibility = '';
         }
         return `${ret} ${this._close} //${this.type} ${this.name}`;
     }
-    open (line) {
-        line = typeof line == 'undefined' ? -1 : line;
+    open (number_line, line) {
+        number_line = typeof number_line == 'undefined' ? -1 : number_line;
+        line = typeof line == 'undefined' ? '' : line;
+        try {
+            this.verifyCorrectPlace(number_line);
+        } catch (e) {
+            throw e;
+        }
+
+        console.log(this.type);
         switch (this.type) {
             case 'class':
                 return `class ${class_name} {`;
+            case 'private':
+            case 'public':
+                current_visibility = this.type;
+                return '';
             default:
-                throw new Error(`Block code type not defined. On line ${line}`);
+                throw new Error(`Block ${this.type} doesn't exist. On line ${number_line}`);
+        }
+    }
+
+    verifyCorrectPlace(number_line) {
+        var father_block = block_stack[block_stack.length - 2];
+        if (!this.can_be_child && father_block) {
+            throw new Error(`${this.type} can't be inside of ${father_block.type}. On line ${number_line}`);
+        }
+        if (this.must_be_child) {
+            var must_be_inside_of = this.can_be_inside.length > 1 ? `one of this: ${this.can_be_inside.join()}` : `of ${this.can_be_inside[0]}`;
+            if (!father_block) {
+                throw new Error(`${this.type} can't be alone, it must be inside ${must_be_inside_of}. On line ${number_line}`);
+            }
+            if (this.can_be_inside.indexOf(father_block.type) == -1) {
+                throw new Error(`${this.type} can't be inside ${father_block.type}, it must be inside ${must_be_inside_of}. On line ${number_line}`);
+            }
         }
     }
 
@@ -129,8 +172,11 @@ var lineToLineTranspiller = (file) => {
     var current_method = '';
     for (n_line in file) {
         let line = file[n_line];
+        let line_spaces = line.search(/\S/);
+        if (line_spaces % 4 != 0 && line_spaces != -1) {
+            throw Error(`Indentation must have a multiple of four spaces. On line ${n_line}, found ${line_spaces}`);
+        }
 
-        spaces.push(line.search(/\S/));
         line = line.trim();
         
         //line is empty
@@ -153,8 +199,9 @@ var lineToLineTranspiller = (file) => {
         }
 
         //blocks of code
+        spaces.push(line_spaces / 4);
         if (spaces[spaces.length - 1] > spaces[spaces.length - 2]) {
-            closeBlock();
+            closeBlock(spaces[spaces.length - 1]);
         }
         
         if (/(class[\s]{1,}[\w]+[\s]{0,}?:)+/.test(line)) {    
@@ -163,7 +210,11 @@ var lineToLineTranspiller = (file) => {
         }
 
         if (/public:/.test(line)) {
+            openBlock(line, 'public')
+        }
 
+        if (/private:/.test(line)) {
+            openBlock(line, 'private')
         }
     }
     fs.writeFile('index.poi.js', js_transpiled.join('\n'), function (err) {
@@ -173,13 +224,15 @@ var lineToLineTranspiller = (file) => {
 
 };
 
-var closeBlock = () => {
-    let block_closed = block_stack.pop();
-    if (block_closed) {
-        try {
-            js_transpiled.push(block_closed.close());
-        } catch (e) {
-            console.log(block_stack, e, n_line);
+var closeBlock = (new_stack_size) => {
+    while (block_stack.length > new_stack_size) {
+        let block_closed = block_stack.pop();
+        if (block_closed) {
+            try {
+                js_transpiled.push(block_closed.close());
+            } catch (e) {
+                console.log(block_stack, e, n_line);
+            }
         }
     }
 };
@@ -203,11 +256,12 @@ var openClass = (line) => {
     block_stack.push(_class);
     classes[class_name] = _class;
 
-    js_transpiled.push(_class.open());
+    js_transpiled.push(_class.open(n_line));
     return class_name;
 };
 
 var openBlock = (line, block_type) => {
-    var _block = new Block(block_type);
+    var _block = new Block(block_type, '');
     block_stack.push(_block);
+    js_transpiled.push(_block.open(n_line, line));
 };
