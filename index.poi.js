@@ -15,9 +15,7 @@ e atributo privado, o getter e o setter tem que ser gerados manualmente, como no
 o transpiler vai sempre renomear todos os atributos como "attr_nome_do_atributo"
 constantes devem ser sempre publicas, e a única diferença para outras variáveis é que o seu setter dispara um erro.
 */
-constructor() {
-            
-        } } //class //class Animal
+
 //getters e setters
 //valor padrão
 //valor padrão, getters e setters
@@ -25,8 +23,14 @@ constructor() {
 //se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
 //valor padrão de parametro
 //interpolação de strings, valores com $val{valor} e métodos ou códigos com $eval{código}
+  //public 
+
 //attr size totalmente privado, só acessível pelo próprio objeto
 //fora da classe, algumas coisas mudam
+  //private 
+constructor() {
+            
+        } } //class //class Animal
 //tipos primitivos, apenas booleanos, numeros e strings
 //instruções de mais de uma linha devem ter contrabarra no fim de cada linha, exceto na última
 //if e else
@@ -34,7 +38,7 @@ constructor() {
 /*
 laços de repetição
 */
-//for
+//for classico
 //foreach & arrays & dictionaries
 //while
 //do while
