@@ -8,7 +8,8 @@
   "author": "Carlos Artur Neubert Gonçalves",
   "license": "MIT",
   "description": "",
-  "node_modules": {
-      
+  "node_modules": {},
+  "dependencies": {
+    "js-beautify": "^1.8.9"
   }
 }

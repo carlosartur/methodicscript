@@ -1,18 +1,18 @@
-var fs = require('fs');
-
-var js_transpiled = [];
-var current_visibility = '';
-var is_comment = false;
-var inside_string = false;
-var block_stack = [];
-var classes = {};
-var spaces = [];
-var js_reserved_words = ["abstract", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue", 
-    "debugger", "default", "delete", "do", "double", "else", "enum", "export", "extends", "false", "final", "finally", 
-    "float", "for", "function", "goto", "if", "implements", "import", "in", "instanceof", "int", "interface", "let", 
-    "long", "native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "super", 
-    "switch", "synchronized", "this", "throw", "throws", "transient", "true", "try", "typeof", "var", "void", "volatile", 
-    "while", "with"];
+var fs = require('fs'),
+    beautify = require('js-beautify').js,
+    js_transpiled = [],
+    current_visibility = '',
+    is_comment = false,
+    inside_string = false,
+    block_stack = [],
+    classes = {},
+    spaces = [],
+    js_reserved_words = ["abstract", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",,
+        "debugger", "default", "delete", "do", "double", "else", "enum", "export", "extends", "false", "final", "finally", 
+        "float", "for", "function", "goto", "if", "implements", "import", "in", "instanceof", "int", "interface", "let", 
+        "long", "native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "super", 
+        "switch", "synchronized", "this", "throw", "throws", "transient", "true", "try", "typeof", "var", "void", "volatile", 
+        "while", "with"];
 
 var poirot_reserved_words = ["method", "attr", "get", "set", "elseif", "is", "ifnot", "another", "from", "to", "step"];
 var kinds_of_blocks = {
@@ -20,11 +20,16 @@ var kinds_of_blocks = {
         can_be_child: true,
         must_be_child: false,
         can_be_inside: [],
-        close: '}'
+        close: '}',
+        name_regex: /[\w]/,
+        params_regex: /(\(([\w],?[\s]{0,}){0,}\)){0,}/,
+        has_name: true,
+        has_params: false
     },
     _class: {
         can_be_child: false,
         close: '} //class',
+        name_regex: /(class (\w*))/i,
     },
     _attr: {
         must_be_child: true,
@@ -33,30 +38,38 @@ var kinds_of_blocks = {
     _method: {
         must_be_child: true,
         can_be_inside: ['public', 'private'],
-        close: 'return this;}// method'
+        close: 'return this;}// method',
+        name_regex: /(method (\w*))/i,
+        has_params: true
     },
     _private: {
         must_be_child: true,
         can_be_inside: ['class'],
-        close: ''
+        close: '',
+        has_name: false
     },
     _public: {
         must_be_child: true,
         can_be_inside: ['class'],
-        close: ''
+        close: '',
+        has_name: false
     },
     _static: {
         must_be_child: true,
         can_be_inside: ['class'],
-        close: ''
+        close: '',
+        has_name: false
     },
     _get: {
         must_be_child: true,
-        can_be_inside: ['attr']
+        can_be_inside: ['attr'],
+        has_name: false
     },
     _set: {
         must_be_child: true,
-        can_be_inside: ['attr']
+        can_be_inside: ['attr'],
+        has_name: false,
+        has_params: true
     },
     _const: {
         must_be_child: true,
@@ -65,7 +78,8 @@ var kinds_of_blocks = {
     _static: {
         must_be_child: true,
         can_be_inside: ['class'],
-        close: ''
+        close: '',
+        has_name: false,
     }
 };
 
@@ -85,7 +99,7 @@ var print = function () {
 }
 
 class Block {
-    constructor (type, name) {
+    constructor (type, name, params) {
         this.type = type;
         this.name = typeof name == 'undefined' ? '' : this.validName(name);
         this.attrs = [];
@@ -98,17 +112,33 @@ class Block {
         this.must_be_child = this.block_props.hasOwnProperty('must_be_child') ? this.block_props.must_be_child : kinds_of_blocks['_defaults']['must_be_child'];
         this.can_be_inside = this.block_props.hasOwnProperty('can_be_inside') ? this.block_props.can_be_inside : kinds_of_blocks['_defaults']['can_be_inside'];
         this._close = this.block_props.hasOwnProperty('close') ? this.block_props.close : kinds_of_blocks['_defaults']['close'];
+        this.has_params = this.block_props.hasOwnProperty('has_params') ? this.block_props.has_params : kinds_of_blocks['_defaults']['has_params'];
+        
+        this.params = this.has_params ? (typeof params == 'undefined' ? '' : this.setParams(params)) : '';
     }
 
+    /**
+     * Close this block
+     */
     close () {
         var ret = '';
         if (this.type == 'class') {
-            ret += this.getConstructor();
+            if (!this._constructor) {
+                ret += this.getConstructor();
+            }
             current_visibility = '';
+        }
+        if (this.name == 'constructor') {
+            return '}';
         }
         return `${ret} ${this._close} //${this.type} ${this.name}`;
     }
 
+    /**
+     * Open this block
+     * @param {numeric} number_line 
+     * @param {string} line 
+     */
     open (number_line, line) {
         number_line = typeof number_line == 'undefined' ? -1 : number_line;
         line = typeof line == 'undefined' ? '' : line;
@@ -123,13 +153,30 @@ class Block {
                 return `class ${class_name} {`;
             case 'private':
             case 'public':
+            case 'static':
                 current_visibility = this.type;
                 return '';
+            case 'method':
+                if (this.name == 'constructor') {
+                    //is inside public (-2) and class (-3)
+                    var father_block = block_stack[block_stack.length - 3];
+                    father_block._constructor = true;
+                    return `constructor(${this.params}) {`;
+                }
+                var getter = current_visibility == "public" ? `${this.name}() {
+                    this.__${this.name}.apply(this, arguments);
+                }` : `${this.name}() { throw new Error('Trying to access a private method ${this.name}.'); }`;
+                return `${getter}
+                __${this.name}(${this.params}) {`
             default:
                 throw new Error(`Block ${this.type} doesn't exist. On line ${number_line + 1}`);
         }
     }
 
+    /**
+     * Returns true if the codeblock is in correct place
+     * @param {numeric} number_line 
+     */
     verifyCorrectPlace(number_line) {
         var father_block = block_stack[block_stack.length - 2];
         if (!this.can_be_child && father_block) {
@@ -146,10 +193,17 @@ class Block {
         }
     }
 
+    /**
+     * Returns if this block is a class block
+     */
     isClass () { 
         return this.type == 'class';
     }
-
+    
+    /**
+     * Set constructor
+     * @param {Block} block 
+     */
     setConstructor (block) {
         block = typeof block == 'undefined' ? '' : block;        
         if (!this.isClass()) {
@@ -168,15 +222,26 @@ class Block {
         this.methods[0] = this._constructor;
     }
 
+    /**
+     * Get constructor
+     */
     getConstructor () {
         if(!this._constructor) {
             this.setConstructor();
         }
         return this._constructor;
     }
-    
+
+    /**
+     * Returns if is a valid codeblock name
+     * @param {string} name 
+     */
     validName (name) {
-        var error_name = 'Bad programming pratice error.';
+        console.log(name);
+        var error_name = `Bad programming pratice error on line ${n_line * 1 + 1}.`;
+        if (name == undefined) {
+            throw new Error(`${error_name} Names can't be undefined. Please fix it before trying compile again.`);            
+        }
         if (name.length < 3) {
             throw new Error(`${error_name} Names can't have less than 3 chars. Please fix it before trying compile again.`);
         }
@@ -205,6 +270,14 @@ class Block {
             throw new Error(`${error_name} ${this.type} must have name written on ${validationObj._name}`);
         }
         return name;
+    }
+
+    /**
+     * 
+     * @param {*} params 
+     */
+    setParams(params) {
+        console.log(params);
     }
 }
 
@@ -262,11 +335,13 @@ var lineToLineTranspiller = (file) => {
             openBlock(line, 'private');
         }
 
-        if (/(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}+[\s]{0,}:)+/.test(line)) {  
+        if (/(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/.test(line)) {  
             openBlock(line, 'method');
         }
     }
-    fs.writeFile('index.poi.js', js_transpiled.join('\n'), function (err) {
+
+    var final_compilled_js = beautify(js_transpiled.join('\n'), { indent_size: 4, space_in_empty_paren: true });
+    fs.writeFile('index.poi.js', final_compilled_js, function (err) {
         if (err) throw err;
         print('Saved!');
     });
@@ -311,13 +386,21 @@ var openClass = (line) => {
 
 var openBlock = (line, block_type) => {
     closeBlock(spaces[spaces.length - 1]);
-    switch (block_type) {
-        case "method":
-            var name = line.match(/(method (\w*))/i)[2];
-            break;
-            
+    var name = undefined, params = undefined;
+    if (kinds_of_blocks.hasOwnProperty(`_${block_type}`)) {
+        kind_block = kinds_of_blocks[`_${block_type}`];
+        var has_name = kind_block.hasOwnProperty('has_name') ? kind_block.has_name : kinds_of_blocks._defaults.has_name;
+        var has_params = kind_block.hasOwnProperty('has_params') ? kind_block.has_params : kinds_of_blocks._defaults.has_params;
+        if (has_name) {
+            var regexName = kind_block.hasOwnProperty('name_regex') ? kind_block.name_regex : kinds_of_blocks._defaults.name_regex;
+            name = line.match(regexName)[2];
+        }
+        if (has_params) {
+            var regexParams = kind_block.hasOwnProperty('params_regex') ? kind_block.params_regex : kinds_of_blocks._defaults.params_regex;
+            params = line.match(regexParams)[2];
+        }
     }
-    var _block = new Block(block_type);
+    var _block = new Block(block_type, name, params);
     block_stack.push(_block);
     js_transpiled.push(_block.open(n_line, line));
 };

@@ -17,12 +17,10 @@ class Animal:
     atributos públicos: internamente a única diferença entre os atributos públicos e privados é que
     atributos públicos a linguagem gera um getter e um setter padrão,
     e atributo privado, o getter e o setter tem que ser gerados manualmente, como no exemplo abaixo.
-    o transpiler vai sempre renomear todos os atributos como "attr_nome_do_atributo"
+    o transpiler vai sempre renomear todos os atributos como "__nome_do_atributo"
     constantes devem ser sempre publicas, e a única diferença para outras variáveis é que o seu setter dispara um erro.
     ###
-    public:
-        const kingdom = "Animalia"
-        
+    public:        
         #getters e setters
         attr name:
             get: method return this.name
@@ -52,7 +50,7 @@ class Animal:
             print "$eval{ 2 + 2 }"
             return true
         
-        method blaWorld2(worldILive, worldYouLive) 
+        method blaWorld2(worldILive, worldYouLive):
             print "Hello, $val{worldILive}, I am $val{this.name}"
             return true
     private:
@@ -61,6 +59,13 @@ class Animal:
             set: method(value) this.foot_number * 2
         
         attr size #totalmente privado, só acessível pelo próprio objeto
+
+        method privateMethod(worldILive, worldYouLive):
+            print "Hello, $val{worldILive}, I am $val{this.name}"
+            return true
+        
+    static:
+        const kingdom = "Animalia"
 
 #fora da classe, algumas coisas mudam
 var x = new Animal('Rex', 120, 'brown', 4, 150)
