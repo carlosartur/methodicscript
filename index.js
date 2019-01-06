@@ -22,7 +22,7 @@ var kinds_of_blocks = {
         can_be_inside: [],
         close: '}',
         name_regex: /[\w]/,
-        params_regex: /(\(([\w],?[\s]{0,}){0,}\)){0,}/,
+        params_regex: /(\(([\w][\s]?[=]?[\s\S]{0,}?,?[\s]{0,}){0,}\))/,
         has_name: true,
         has_params: false
     },
@@ -33,11 +33,11 @@ var kinds_of_blocks = {
     },
     _attr: {
         must_be_child: true,
-        can_be_inside: ['public', 'private']
+        can_be_inside: ['public', 'private', 'static']
     },
     _method: {
         must_be_child: true,
-        can_be_inside: ['public', 'private'],
+        can_be_inside: ['public', 'private', 'static'],
         close: 'return this;}// method',
         name_regex: /(method (\w*))/i,
         has_params: true
@@ -112,8 +112,10 @@ class Block {
         this.must_be_child = this.block_props.hasOwnProperty('must_be_child') ? this.block_props.must_be_child : kinds_of_blocks['_defaults']['must_be_child'];
         this.can_be_inside = this.block_props.hasOwnProperty('can_be_inside') ? this.block_props.can_be_inside : kinds_of_blocks['_defaults']['can_be_inside'];
         this._close = this.block_props.hasOwnProperty('close') ? this.block_props.close : kinds_of_blocks['_defaults']['close'];
+        if (this.type == 'method' && current_visibility == 'static') {
+            this._close = "return null }";
+        }
         this.has_params = this.block_props.hasOwnProperty('has_params') ? this.block_props.has_params : kinds_of_blocks['_defaults']['has_params'];
-        
         this.params = this.has_params ? (typeof params == 'undefined' ? '' : this.setParams(params)) : '';
     }
 
@@ -154,20 +156,26 @@ class Block {
             case 'private':
             case 'public':
             case 'static':
+                console.log(this.type)
                 current_visibility = this.type;
                 return '';
             case 'method':
                 if (this.name == 'constructor') {
-                    //is inside public (-2) and class (-3)
-                    var father_block = block_stack[block_stack.length - 3];
-                    father_block._constructor = true;
+                    current_class._constructor = true;
                     return `constructor(${this.params}) {`;
                 }
-                var getter = current_visibility == "public" ? `${this.name}() {
-                    this.__${this.name}.apply(this, arguments);
-                }` : `${this.name}() { throw new Error('Trying to access a private method ${this.name}.'); }`;
+                switch (current_visibility) {
+                    case "public":
+                        var getter = `${this.name}() { this.__${this.name}.apply(this, arguments); }`;
+                        break;
+                    case "private":
+                        var getter = `${this.name}() { throw new Error('Trying to access a private method ${this.name}.'); }`;
+                        break;
+                    case "static":
+                        return `static ${this.name}(${this.params}) {`;
+                }
                 return `${getter}
-                __${this.name}(${this.params}) {`
+                ${current_visibility == "static" ? "static" : ''} __${this.name}(${this.params}) {`
             default:
                 throw new Error(`Block ${this.type} doesn't exist. On line ${number_line + 1}`);
         }
@@ -277,7 +285,7 @@ class Block {
      * @param {*} params 
      */
     setParams(params) {
-        console.log(params);
+        return params.split(',').join(',');
     }
 }
 
@@ -286,10 +294,10 @@ fs.readFile('index.poi', 'UTF-8', (err, contents) => {
     lineToLineTranspiller(file);
 });
 
+var current_class = '';
+var current_method = '';
 var n_line;
 var lineToLineTranspiller = (file) => {
-    var current_class = '';
-    var current_method = '';
     for (n_line in file) {
         let line = file[n_line];
         let line_spaces = line.search(/\S/);
@@ -337,12 +345,17 @@ var lineToLineTranspiller = (file) => {
             continue;
         }
 
+        if (/static:/.test(line)) {
+            openBlock(line, 'static');
+            continue;
+        }
+
         if (/(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/.test(line)) {  
             openBlock(line, 'method');
             continue;
         }
 
-        bruteline(line);
+        //bruteline(line);
     }
 
     var final_compilled_js = beautify(js_transpiled.join('\n'), { indent_size: 4, space_in_empty_paren: true });
@@ -384,7 +397,7 @@ var openClass = (line) => {
     var _class = new Block('class', class_name);
     block_stack.push(_class);
     classes[class_name] = _class;
-
+    current_class = _class;
     js_transpiled.push(_class.open(n_line));
     return class_name;
 };
@@ -402,7 +415,8 @@ var openBlock = (line, block_type) => {
         }
         if (has_params) {
             var regexParams = kind_block.hasOwnProperty('params_regex') ? kind_block.params_regex : kinds_of_blocks._defaults.params_regex;
-            params = line.match(regexParams)[2];
+            params = line.match(regexParams);
+            params = params ? params[1].split('(').join('').split(')').join('') : '';
         }
     }
     var _block = new Block(block_type, name, params);

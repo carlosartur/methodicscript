@@ -66,6 +66,10 @@ class Animal:
         
     static:
         const kingdom = "Animalia"
+        #static methods returns null if there's not a return statement
+        method staticMethod():
+            return true
+
 
 #fora da classe, algumas coisas mudam
 var x = new Animal('Rex', 120, 'brown', 4, 150)

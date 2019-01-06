@@ -20,7 +20,7 @@ class Animal {
     //valor padrão
     //valor padrão, getters e setters
     //construtor padrão, se não for setado, será assim: os parametros serão recebidos em ordem que aparecem na classe, e serão setados conforme passados
-    constructor() {
+    constructor(name, height, color, foot_number, size) {
         //se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
     }
     bla() {
@@ -34,7 +34,7 @@ class Animal {
     blaWorld2() {
         this.__blaWorld2.apply(this, arguments);
     }
-    __blaWorld2() {
+    __blaWorld2(worldILive, worldYouLive) {
         return this;
     } // method //method blaWorld2
     //public 
@@ -43,11 +43,17 @@ class Animal {
     privateMethod() {
         throw new Error('Trying to access a private method privateMethod.');
     }
-    __privateMethod() {
+    __privateMethod(worldILive, worldYouLive) {
         return this;
     } // method //method privateMethod
     //private 
-    //fora da classe, algumas coisas mudam
+
+    //static methods returns null if there's not a return statement
+    static staticMethod() {
+        //fora da classe, algumas coisas mudam
+        return null
+    } //method staticMethod
+    //static 
 } //class //class Animal
 //tipos primitivos, apenas booleanos, numeros e strings
 //instruções de mais de uma linha devem ter contrabarra no fim de cada linha, exceto na última
