@@ -329,15 +329,20 @@ var lineToLineTranspiller = (file) => {
 
         if (/public:/.test(line)) {
             openBlock(line, 'public');
+            continue;
         }
 
         if (/private:/.test(line)) {
             openBlock(line, 'private');
+            continue;
         }
 
         if (/(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/.test(line)) {  
             openBlock(line, 'method');
+            continue;
         }
+
+        bruteline(line);
     }
 
     var final_compilled_js = beautify(js_transpiled.join('\n'), { indent_size: 4, space_in_empty_paren: true });
