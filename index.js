@@ -117,6 +117,9 @@ class Block {
         }
         this.has_params = this.block_props.hasOwnProperty('has_params') ? this.block_props.has_params : kinds_of_blocks['_defaults']['has_params'];
         this.params = this.has_params ? (typeof params == 'undefined' ? '' : this.setParams(params)) : '';
+        this.parent = 'Object';
+        this.opened = false;
+        this.traits = [];
     }
 
     /**
@@ -124,16 +127,28 @@ class Block {
      */
     close () {
         var ret = '';
+        var traits_code = '';
         if (this.type == 'class') {
             if (!this._constructor) {
                 ret += this.getConstructor();
+            }
+            if (this.traits) {
+                this.traits.forEach(element => {
+                    traits_code += `
+                    for (var i of Object.getOwnPropertyNames(${element}.prototype)) {
+                        if (${this.name}.prototype.hasOwnProperty(i)) {
+                          continue;
+                        }
+                        ${this.name}.prototype[i] = ${element}.prototype[i];
+                    }`;
+                });
             }
             current_visibility = '';
         }
         if (this.name == 'constructor') {
             return '}';
         }
-        return `${ret} ${this._close} //${this.type} ${this.name}`;
+        return `${ret} ${this._close} ${traits_code} //${this.type} ${this.name}`;
     }
 
     /**
@@ -145,24 +160,32 @@ class Block {
         number_line = typeof number_line == 'undefined' ? -1 : number_line;
         line = typeof line == 'undefined' ? '' : line;
         try {
-            this.verifyCorrectPlace(number_line);
+            if(!(this.isClass() && !this.opened)) {
+                this.verifyCorrectPlace(number_line);
+            }
         } catch (e) {
             throw e;
         }
-
+        var ret = '';
         switch (this.type) {
             case 'class':
-                return `class ${class_name} {`;
+                this.opened = true;
+                return `class ${class_name} extends ${this.parent} {`;
             case 'private':
             case 'public':
             case 'static':
-                console.log(this.type)
+                if (!current_class.opened) {
+                    ret += current_class.open();
+                }
                 current_visibility = this.type;
-                return '';
+                return `${ret} //${this.type}`;
             case 'method':
+                if (!current_class.opened) {
+                    ret += current_class.open();
+                }
                 if (this.name == 'constructor') {
                     current_class._constructor = true;
-                    return `constructor(${this.params}) {`;
+                    return `${ret} constructor(${this.params}) { super();`;
                 }
                 switch (current_visibility) {
                     case "public":
@@ -172,9 +195,9 @@ class Block {
                         var getter = `${this.name}() { throw new Error('Trying to access a private method ${this.name}.'); }`;
                         break;
                     case "static":
-                        return `static ${this.name}(${this.params}) {`;
+                        return `${ret} static ${this.name}(${this.params}) {`;
                 }
-                return `${getter}
+                return `${ret} ${getter}
                 ${current_visibility == "static" ? "static" : ''} __${this.name}(${this.params}) {`
             default:
                 throw new Error(`Block ${this.type} doesn't exist. On line ${number_line + 1}`);
@@ -355,6 +378,15 @@ var lineToLineTranspiller = (file) => {
             continue;
         }
 
+        if (/^(extends )/.test(line)) {
+            current_class.parent = line.replace(/^(extends )/g, '');
+            openClass(line);
+            continue;
+        }
+
+        if (/^(traits )/.test(line)) {
+            current_class.traits = line.replace(/^(traits )/g, '').split(',');
+        }
         //bruteline(line);
     }
 
@@ -393,12 +425,16 @@ var bruteline = (line) => {
 };
 
 var openClass = (line) => {
+    if (current_class && !current_class.opened) {
+        js_transpiled.push(current_class.open(n_line));
+        return current_class.name;
+    } 
     class_name = line.match(/(class (\w*))/i)[2];
     var _class = new Block('class', class_name);
     block_stack.push(_class);
     classes[class_name] = _class;
     current_class = _class;
-    js_transpiled.push(_class.open(n_line));
+    //js_transpiled.push(_class.open(n_line));
     return class_name;
 };
 

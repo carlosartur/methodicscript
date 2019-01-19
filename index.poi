@@ -76,8 +76,8 @@ var x = new Animal('Rex', 120, 'brown', 4, 150)
 #tipos primitivos, apenas booleanos, numeros e strings
 var y = 123.123, z = 'Abc', a = false
 
-#instruções de mais de uma linha devem ter contrabarra no fim de cada linha, exceto na última
-y = \
+#instruções de mais de uma linha seguem forma do javascript
+y = 
     new Animal('Rex', 120, 'brown', 4, 150)
 
 #if e else
