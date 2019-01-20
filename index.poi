@@ -9,7 +9,9 @@ class Animal:
 
     ###
     traits: não existem traits em si, aqui devem ser usadas classes que serão usadas como se fossem traits. 
-    As últimas chamadas sempre sobrescrevem os métodos e atributos das anteriores, caso nomes coincidam, e nunca sobrescrevem da classe mãe
+    A ordem de chamada é a ordem de importancia, ou seja, se "Planets" tiver um método com o nome igual a "Kinds", 
+    esse será desconsiderado em favor do método de "Kinds", porque "Kinds" foi chamada primeiro. Caso o método exista na própria classe,
+    ele não será sobrescrito por trait.
     ###
     traits Kinds, Planets, Live  
     
@@ -65,7 +67,7 @@ class Animal:
             return true
         
     static:
-        const kingdom = "Animalia"
+        const KINGDOM = "Animalia"
         #static methods returns null if there's not a return statement
         method staticMethod():
             return true

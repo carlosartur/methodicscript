@@ -14,6 +14,12 @@ var fs = require('fs'),
         "switch", "synchronized", "this", "throw", "throws", "transient", "true", "try", "typeof", "var", "void", "volatile", 
         "while", "with"];
 
+String.prototype.replaceAll = function(search, replacement) {
+    replacement = typeof replacement == "undefined" ? '' : replacement;
+    var target = this;
+    return target.split(search).join(replacement);
+};
+
 var poirot_reserved_words = ["method", "attr", "get", "set", "elseif", "is", "ifnot", "another", "from", "to", "step"];
 var kinds_of_blocks = {
     _defaults: {
@@ -73,7 +79,11 @@ var kinds_of_blocks = {
     },
     _const: {
         must_be_child: true,
-        can_be_inside: ['public']
+        can_be_inside: ['static'],
+        name_regex: /(const (\w*))/i,
+        params_regex: /(?<=\=).*$/,
+        has_params: true,
+        close: ''
     },
     _static: {
         must_be_child: true,
@@ -199,8 +209,11 @@ class Block {
                 }
                 return `${ret} ${getter}
                 ${current_visibility == "static" ? "static" : ''} __${this.name}(${this.params}) {`
+            case 'const':
+                return `static get ${this.name} () {return ${this.params}} 
+                        static set ${this.name} (value) {throw new Error("${this.name} is a class constant, and can't have his value changed to " + value)}`;
             default:
-                throw new Error(`Block ${this.type} doesn't exist. On line ${number_line + 1}`);
+                throw new Error(`Block ${this.type} doesn't exist. On line ${parseInt(number_line) + 1}`);
         }
     }
 
@@ -268,7 +281,6 @@ class Block {
      * @param {string} name 
      */
     validName (name) {
-        console.log(name);
         var error_name = `Bad programming pratice error on line ${n_line * 1 + 1}.`;
         if (name == undefined) {
             throw new Error(`${error_name} Names can't be undefined. Please fix it before trying compile again.`);            
@@ -281,16 +293,20 @@ class Block {
         }
         var regexNameOf = {
             _class : {
-                _regex : /^(([A-Z])(\d)|([A-Z][a-z0-9]+))*([A-Z])?$/,
-                _name : 'CamelCase with leading uppercase.'
+                _regex: /^(([A-Z])(\d)|([A-Z][a-z0-9]+))*([A-Z])?$/,
+                _name: 'CamelCase with leading uppercase.'
             },
             _method: {
-                _regex : /^[a-z]+((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?$/,
-                _name : 'camelCase with leading lowercase.'
+                _regex: /^[a-z]+((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?$/,
+                _name: 'camelCase with leading lowercase.'
             },
             _attr: {
-                _regex : /^[a-z]+((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?$/,
-                _name : 'snake_case.'
+                _regex: /^[a-z_]+((\d)|([a-z0-9]+))*$/,
+                _name: 'snake_case_all_lowercase.'
+            },
+            _const: {
+                _retex: /^[A-Z_]+((\d)|([A-Z0-9]+))*$/,
+                _name: 'SNAKE_CASE_ALL_UPERCASE.'
             }
         };
         if (regexNameOf.hasOwnProperty(`_${this.type}`)) {
@@ -305,10 +321,10 @@ class Block {
 
     /**
      * 
-     * @param {*} params 
+     * @param String params 
      */
     setParams(params) {
-        return params.split(',').join(',');
+        return params.replaceAll(',', ', ');
     }
 }
 
@@ -345,7 +361,7 @@ var lineToLineTranspiller = (file) => {
             continue;
         }
         if (is_comment) {
-            bruteline(line);
+            bruteline(" *" + line);
             continue;
         }
 
@@ -385,7 +401,14 @@ var lineToLineTranspiller = (file) => {
         }
 
         if (/^(traits )/.test(line)) {
+            js_transpiled.push(`//${line}`);
             current_class.traits = line.replace(/^(traits )/g, '').split(',');
+            continue;
+        }
+
+        if (/(const [A-Z]{1,})/.test(line)) {
+            openBlock(line, 'const');
+            continue;
         }
         //bruteline(line);
     }
@@ -416,7 +439,7 @@ var oneLineComment = (line) => {
 };
 
 var comment = () => {
-    js_transpiled.push(is_comment ? '*/' : '/*');
+    js_transpiled.push(is_comment ? '*/' : '/**');
     is_comment = !is_comment;
 };
 
@@ -451,8 +474,12 @@ var openBlock = (line, block_type) => {
         }
         if (has_params) {
             var regexParams = kind_block.hasOwnProperty('params_regex') ? kind_block.params_regex : kinds_of_blocks._defaults.params_regex;
-            params = line.match(regexParams);
-            params = params ? params[1].split('(').join('').split(')').join('') : '';
+            params_match = line.match(regexParams);
+            params = '';
+            if (params_match) {
+                params = params_match[1] ? params_match[1] : params_match[0];
+                params = params.replaceAll('(').replaceAll(')');
+            }
         }
     }
     var _block = new Block(block_type, name, params);

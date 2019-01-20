@@ -1,20 +1,23 @@
-/*
-Comentários de múltiplas linhas, documentações
-*/
+/**
+ *Comentários de múltiplas linhas, documentações
+ */
 //comentários de linhas simples
 //sempre primeira linha não comentário, se não hover, vai extender classe object
 class Animal extends Living {
-    /*
-    traits: não existem traits em si, aqui devem ser usadas classes que serão usadas como se fossem traits.
-    As últimas chamadas sempre sobrescrevem os métodos e atributos das anteriores, caso nomes coincidam, e nunca sobrescrevem da classe mãe
-    */
-    /*
-    atributos públicos: internamente a única diferença entre os atributos públicos e privados é que
-    atributos públicos a linguagem gera um getter e um setter padrão,
-    e atributo privado, o getter e o setter tem que ser gerados manualmente, como no exemplo abaixo.
-    o transpiler vai sempre renomear todos os atributos como "__nome_do_atributo"
-    constantes devem ser sempre publicas, e a única diferença para outras variáveis é que o seu setter dispara um erro.
-    */
+    /**
+     *traits: não existem traits em si, aqui devem ser usadas classes que serão usadas como se fossem traits.
+     *A ordem de chamada é a ordem de importancia, ou seja, se "Planets" tiver um método com o nome igual a "Kinds",
+     *esse será desconsiderado em favor do método de "Kinds", porque "Kinds" foi chamada primeiro. Caso o método exista na própria classe,
+     *ele não será sobrescrito por trait.
+     */
+    //traits Kinds, Planets, Live
+    /**
+     *atributos públicos: internamente a única diferença entre os atributos públicos e privados é que
+     *atributos públicos a linguagem gera um getter e um setter padrão,
+     *e atributo privado, o getter e o setter tem que ser gerados manualmente, como no exemplo abaixo.
+     *o transpiler vai sempre renomear todos os atributos como "__nome_do_atributo"
+     *constantes devem ser sempre publicas, e a única diferença para outras variáveis é que o seu setter dispara um erro.
+     */
     //public
     //getters e setters
     //valor padrão
@@ -49,7 +52,14 @@ class Animal extends Living {
     } // method  //method privateMethod
     //private 
     //static
+    static get KINGDOM() {
+        return "Animalia"
+    }
+    static set KINGDOM(value) {
+        throw new Error("KINGDOM is a class constant, and can't have his value changed to " + value)
+    }
     //static methods returns null if there's not a return statement
+    //const KINGDOM
     static staticMethod() {
         //fora da classe, algumas coisas mudam
         return null
@@ -78,9 +88,9 @@ for (var i of Object.getOwnPropertyNames(Live.prototype)) {
 //instruções de mais de uma linha seguem forma do javascript
 //if e else
 //switch - não usar break, não é necessário.
-/*
-laços de repetição
-*/
+/**
+ *laços de repetição
+ */
 //for classico
 //foreach & arrays & dictionaries
 //while
