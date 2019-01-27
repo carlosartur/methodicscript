@@ -39,7 +39,11 @@ var kinds_of_blocks = {
     },
     _attr: {
         must_be_child: true,
-        can_be_inside: ['public', 'private', 'static']
+        can_be_inside: ['public', 'private', 'static'],
+        name_regex: /(attr (\w*))/i,
+        params_regex: /(?<=\=).*$/,
+        close: '',
+        has_params: true
     },
     _method: {
         must_be_child: true,
@@ -130,6 +134,9 @@ class Block {
         this.parent = 'Object';
         this.opened = false;
         this.traits = [];
+        this.setter = "set ${this.name}(val) { this.__${this.name} = val; }";
+        this.getter = "get ${this.name}() { return this.__${this.name}; }";
+        this.defaults = {};
     }
 
     /**
@@ -153,6 +160,11 @@ class Block {
                     }`;
                 });
             }
+            ret += "__set_defaults(){";
+            for (var i in this.defaults) {
+                ret += `this.__${i} = ${this.defaults[i]};`;
+            }
+            ret += "}";
             current_visibility = '';
         }
         if (this.name == 'constructor') {
@@ -195,11 +207,11 @@ class Block {
                 }
                 if (this.name == 'constructor') {
                     current_class._constructor = true;
-                    return `${ret} constructor(${this.params}) { super();`;
+                    return `${ret} constructor(${this.params}) { super(); this.__set_defaults();`;
                 }
                 switch (current_visibility) {
                     case "public":
-                        var getter = `${this.name}() { this.__${this.name}.apply(this, arguments); }`;
+                        var getter = `${this.name}() { return this.__${this.name}.apply(this, arguments); }`;
                         break;
                     case "private":
                         var getter = `${this.name}() { throw new Error('Trying to access a private method ${this.name}.'); }`;
@@ -212,6 +224,11 @@ class Block {
             case 'const':
                 return `static get ${this.name} () {return ${this.params}} 
                         static set ${this.name} (value) {throw new Error("${this.name} is a class constant, and can't have his value changed to " + value)}`;
+            case 'attr':
+                return ``;
+            case 'set':
+            case 'get':
+                return `${current_visibility == 'static' ? 'static' : ''} ${this.type} ${current_attr.name} (${this.params}) {`;
             default:
                 throw new Error(`Block ${this.type} doesn't exist. On line ${parseInt(number_line) + 1}`);
         }
@@ -324,7 +341,18 @@ class Block {
      * @param String params 
      */
     setParams(params) {
+        if (this.type == 'attr') {
+            params = params.replace(/:$/, '');
+            current_class.setDefault(this.name, (params ? params : "null"));
+        }
         return params.replaceAll(',', ', ');
+    }
+
+    /**
+     * set default of a attr
+     */
+    setDefault(name, val) {
+        this.defaults[name] = val;
     }
 }
 
@@ -334,7 +362,7 @@ fs.readFile('index.poi', 'UTF-8', (err, contents) => {
 });
 
 var current_class = '';
-var current_method = '';
+var current_attr = null;
 var n_line;
 var lineToLineTranspiller = (file) => {
     for (n_line in file) {
@@ -408,6 +436,21 @@ var lineToLineTranspiller = (file) => {
 
         if (/(const [A-Z]{1,})/.test(line)) {
             openBlock(line, 'const');
+            continue;
+        }
+
+        if (/(attr[\s]{1,}[\w]+[\s]{0,}?:?)+/.test(line)) {
+            openBlock(line, 'attr');
+            continue;
+        }
+
+        if (/(set)(\s){0,}?(:)/.test(line)) {
+            openBlock(line, 'set');
+            continue;
+        }
+
+        if (/(get)(\s){0,}?(:)/.test(line)) {
+            openBlock(line, 'get');
             continue;
         }
         //bruteline(line);
@@ -484,5 +527,8 @@ var openBlock = (line, block_type) => {
     }
     var _block = new Block(block_type, name, params);
     block_stack.push(_block);
+    if (_block.type == "attr") {
+        current_attr = _block;
+    }
     js_transpiled.push(_block.open(n_line, line));
 };

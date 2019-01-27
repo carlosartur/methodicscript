@@ -20,15 +20,28 @@ class Animal extends Living {
      */
     //public
     //getters e setters
-    //valor padrão
+
+    get name() {} //get 
+    set name(value) {
+        //valor padrão
+    } //set 
+    //attr name
+
     //valor padrão, getters e setters
-    //construtor padrão, se não for setado, será assim: os parametros serão recebidos em ordem que aparecem na classe, e serão setados conforme passados
+    //attr height
+
+    get color() {} //get 
+    set color(value) {
+        //construtor padrão, se não for setado, será assim: os parametros serão recebidos em ordem que aparecem na classe, e serão setados conforme passados
+    } //set 
+    //attr color
     constructor(name, height, color, foot_number, size) {
         super();
+        this.__set_defaults();
         //se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
     }
     bla() {
-        this.__bla.apply(this, arguments);
+        return this.__bla.apply(this, arguments);
     }
     __bla() {
         //valor padrão de parametro
@@ -36,14 +49,19 @@ class Animal extends Living {
     } // method  //method bla
     //interpolação de strings, valores com $val{valor} e métodos ou códigos com $eval{código}
     blaWorld2() {
-        this.__blaWorld2.apply(this, arguments);
+        return this.__blaWorld2.apply(this, arguments);
     }
     __blaWorld2(worldILive, worldYouLive) {
         return this;
     } // method  //method blaWorld2
     //public 
     //private
-    //attr size totalmente privado, só acessível pelo próprio objeto
+
+    get foot_number() {} //get 
+    set foot_number(value) {
+        //attr size totalmente privado, só acessível pelo próprio objeto
+    } //set 
+    //attr foot_number
     privateMethod() {
         throw new Error('Trying to access a private method privateMethod.');
     }
@@ -65,6 +83,12 @@ class Animal extends Living {
         return null
     } //method staticMethod
     //static 
+    __set_defaults() {
+        this.__name = null;
+        this.__height = 125;
+        this.__color = "brown";
+        this.__foot_number = null;
+    }
 } //class 
 for (var i of Object.getOwnPropertyNames(Kinds.prototype)) {
     if (Animal.prototype.hasOwnProperty(i)) {
