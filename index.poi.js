@@ -118,8 +118,8 @@ switch (value) {
         //for classico
         //default
 } //switch
-
-//foreach & arrays & dictionaries
+for (var index = 0; index = 100; index += (2)) {
+    //foreach & arrays & dictionaries
 } //from
 //while
 //do while

@@ -590,14 +590,58 @@ class _conditionals extends Block {
 class _loop extends Block {
     constructor(type, params) {
         super(type, params);
-        if (this.type == "from") {
-            this.defineTo()
-        }
         console.log(this);
     }
 
     open() {
+        return this[`open${this.type}`];
+    }
+
+    get openfrom() {
+        return `for (var ${this.from}; ${this.to}; ${this.indexVar} += (${this.step}) ) {`;
+    }
+
+    get to() {
+        if (!this._to) {
+            this._to = this.params
+                .match(/(to (.){1,}(step))/)
+                .shift()
+                .replace('to', '')
+                .replace('step', '');
         
+        }
+        return this._to;
+    }
+    
+    get from() {
+        if (!this._from) {
+            this._from = this.params
+                .match(/(.{1,}\d{1,} (to))/)
+                .shift()
+                .replace(' to', '')
+                .replace('from ', '');
+        }
+        return this._from;
+    }
+    
+    get indexVar() {
+        if (!this._indexVar) {
+            this._indexVar = this.params
+                .match(/( \w{3,})/)
+                .shift()
+                .replace('from ', '');
+        }
+        return this._indexVar;
+    }
+    
+    get step() {
+        if (!this._step) {
+            this._step = this.params
+                .match(/((step)\s{1,}-?\d{1,})/)
+                .shift()
+                .replace('step ', '');
+        }
+        return this._step;
     }
 }
 
