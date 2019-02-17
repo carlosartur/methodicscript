@@ -2,6 +2,18 @@
  *Comentários de múltiplas linhas, documentações
  */
 //comentários de linhas simples
+//abstract
+class Living extends Object {
+    constructor() {
+        super();
+        this.__set_defaults();
+
+        if (new.target === Living) {
+            throw new TypeError("Cannot construct Abstract instances directly");
+        }
+    }
+    __set_defaults() {}
+} //class  //class Living
 //sempre primeira linha não comentário, se não hover, vai extender classe object
 class Animal extends Living {
     /**
@@ -21,54 +33,44 @@ class Animal extends Living {
     //public
     //getters e setters
 
-    get name() {} //get 
+    get name() {} //get
     set name(value) {
         //valor padrão
-    } //set 
-    //attr name
+    } //set
+
 
     //valor padrão, getters e setters
-    //attr height
+    get height() {
+        return this.__height;
+    }
+    set height(val) {
+        this.__height = val;
+    }
 
-    get color() {} //get 
+    get color() {} //get
     set color(value) {
         //construtor padrão, se não for setado, será assim: os parametros serão recebidos em ordem que aparecem na classe, e serão setados conforme passados
-    } //set 
-    //attr color
-    constructor(name, height, color, foot_number, size) {
-        super();
-        this.__set_defaults();
-        //se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
-    }
-    bla() {
-        return this.__bla.apply(this, arguments);
-    }
-    __bla() {
-        //valor padrão de parametro
-        return this;
-    } // method  //method bla
-    //interpolação de strings, valores com $val{valor} e métodos ou códigos com $eval{código}
-    blaWorld2() {
-        return this.__blaWorld2.apply(this, arguments);
-    }
-    __blaWorld2(worldILive, worldYouLive) {
-        return this;
-    } // method  //method blaWorld2
-    //public 
+    } //set
+
+    //se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
+    //valor padrão de parametro
+    //interpolação de strings, valores com ${valor} e métodos ou códigos com ${código}
+
     //private
 
-    get foot_number() {} //get 
+    get foot_number() {} //get
     set foot_number(value) {
-        //attr size totalmente privado, só acessível pelo próprio objeto
-    } //set 
-    //attr foot_number
-    privateMethod() {
-        throw new Error('Trying to access a private method privateMethod.');
+        //totalmente privado, só acessível pelo próprio objeto
+    } //set
+
+
+    get size() {
+        throw new Error("size is a private attribute, it's value can't be get outside it's class")
     }
-    __privateMethod(worldILive, worldYouLive) {
-        return this;
-    } // method  //method privateMethod
-    //private 
+    set size(val) {
+        throw new Error("size is a private attribute, it's value can't be changed outside it's class")
+    }
+
     //static
     static get KINGDOM() {
         return "Animalia"
@@ -77,46 +79,58 @@ class Animal extends Living {
         throw new Error("KINGDOM is a class constant, and can't have his value changed to " + value)
     }
     //static methods returns null if there's not a return statement
-    //const KINGDOM
-    static staticMethod() {
-        //fora da classe, algumas coisas mudam
-        return null
-    } //method staticMethod
-    //static 
+    //const
+    //fora da classe, algumas coisas mudam
+
+    constructor() {
+        super();
+        this.__set_defaults();
+
+    }
     __set_defaults() {
         this.__name = null;
         this.__height = 125;
         this.__color = "brown";
         this.__foot_number = null;
+        this.__size = null;
     }
 } //class 
-for (var i of Object.getOwnPropertyNames(Kinds.prototype)) {
-    if (Animal.prototype.hasOwnProperty(i)) {
-        continue;
-    }
-    Animal.prototype[i] = Kinds.prototype[i];
-}
-for (var i of Object.getOwnPropertyNames(Planets.prototype)) {
-    if (Animal.prototype.hasOwnProperty(i)) {
-        continue;
-    }
-    Animal.prototype[i] = Planets.prototype[i];
-}
-for (var i of Object.getOwnPropertyNames(Live.prototype)) {
-    if (Animal.prototype.hasOwnProperty(i)) {
-        continue;
-    }
-    Animal.prototype[i] = Live.prototype[i];
-} //class Animal
+trait(Animal, Kinds, Planets, Live) //class Animal
 //tipos primitivos, apenas booleanos, numeros e strings
 //instruções de mais de uma linha seguem forma do javascript
 //if e else
-//switch - não usar break, não é necessário.
-/**
- *laços de repetição
- */
-//for classico
+if (1 == 2) {} //if
+else if (100 > 200) {} //elseif
+else if (!(1000 < 2000)) {} //elseunless
+else {} //else
+if (!(1 == 2)) {
+    //switch - não usar break, não é necessário.
+} //unless
+switch (value) {
+    case 1:
+        break; //case
+    case 2:
+        break; //case
+    default:
+        /**
+         *laços de repetição
+         */
+        //for classico
+        //default
+} //switch
+
 //foreach & arrays & dictionaries
+} //from
 //while
 //do while
 //functions fora das classes, se não tiver return, retornará null
+function trait(_class, ..._traits) {
+    for (var _trait of _traits) {
+        for (var a of Object.getOwnPropertyNames(_trait.prototype)) {
+            if (_class.prototype.hasOwnProperty(a)) {
+                continue;
+            }
+            _class.prototype[a] = _trait.prototype[a];
+        }
+    }
+}

@@ -3,6 +3,9 @@ Comentários de múltiplas linhas, documentações
 ###
 #comentários de linhas simples
 
+class Living:
+    abstract
+
 class Animal:
     #sempre primeira linha não comentário, se não hover, vai extender classe object
     extends Living
@@ -25,16 +28,20 @@ class Animal:
     public:        
         #getters e setters
         attr name:
-            get: method return this.name
-            set: method(value) this.name = value
+            get: method 
+                return this.name
+            set: method(value) 
+                this.name = value
         
         #valor padrão
         attr height = 125 
 
         #valor padrão, getters e setters
         attr color = "brown":
-            get: method return this.color
-            set: method(value) this.color = value
+            get: method 
+                return this.color
+            set: method(value) 
+                this.color = value
 
         #construtor padrão, se não for setado, será assim: os parametros serão recebidos em ordem que aparecem na classe, e serão setados conforme passados
         method constructor(name, height, color, foot_number, size):
@@ -47,23 +54,26 @@ class Animal:
         
         #valor padrão de parametro
         method blaWorld(worldILive = "Earth"):
-            #interpolação de strings, valores com $val{valor} e métodos ou códigos com $eval{código}
-            print "Hello, $val{worldILive}, I am $val{this.name}"
-            print "$eval{ 2 + 2 }"
+            #interpolação de strings, valores com ${valor} e métodos ou códigos com ${código}
+            print "Hello, ${worldILive}, I am ${this.name}"
+            print "${ 2 + 2 }"
             return true
         
         method blaWorld2(worldILive, worldYouLive):
-            print "Hello, $val{worldILive}, I am $val{this.name}"
+            print "Hello, ${worldILive}, I am ${this.name}"
             return true
     private:
         attr foot_number:
-            get: method return this.foot_number / 2
-            set: method(value) this.foot_number * 2
+            get: method 
+                return this.foot_number / 2
+            set: method(value) 
+                this.foot_number * 2
         
-        attr size #totalmente privado, só acessível pelo próprio objeto
-
+        #totalmente privado, só acessível pelo próprio objeto
+        attr size 
+        
         method privateMethod(worldILive, worldYouLive):
-            print "Hello, $val{worldILive}, I am $val{this.name}"
+            print "Hello, ${worldILive}, I am ${this.name}"
             return true
         
     static:
@@ -87,19 +97,21 @@ if 1 == 2:
     print 1
 elseif 100 > 200:
     print 2
+elseunless 1000 < 2000:
+    print 4;
 else:
     print 3
 
-ifnot 1 == 2:
+unless 1 == 2:
     print 'oi'
 
 #switch - não usar break, não é necessário.
 switch value:
-    is 1:
+    case 1:
         print 'is 1'
-    is 2:
+    case 2:
         print 'is 2'
-    another:
+    default:
         print 'is another'
 
 ###
@@ -117,10 +129,10 @@ dict = [
 ]
 
 for index in list as val:
-    print "$val{val} is position $val{index} in list"
+    print "${val} is position ${index} in list"
 
 for index in dict as val:
-    print "$val{val} is position $val{index} in dict"
+    print "${val} is position ${index} in dict"
 
 #while
 while cond:
