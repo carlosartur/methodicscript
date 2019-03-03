@@ -188,22 +188,28 @@ for (var index = 0; index <= 100; index += (2)) {
     //foreach & arrays & dictionaries
 } //from
 list = [1, 2, 3, 4]
-dict = [
-    abc = 'abc',
-    123 = '123',
-]
-for index in list as val:
+dict = {
+    abc: 'abc',
+    123: '123',
+}
+for (var index in list) {
+    var val = list[index]
     print(`${val} is position ${index} in list`)
-for index in dict as val:
+} //foreach
+for (var index in dict) {
+    var val = dict[index]
     print(`${val} is position ${index} in dict`)
-//while
-while cond:
+    //while
+} //foreach
+while (cond) {
     print('oi')
-//do while
-repeat:
+    //do while
+} //while
+do {
     print('oi')
-while cond
+} while (cond);
 //functions fora das classes, se não tiver return, retornará null
+
 function test(fistProp, secondProp = false):
 return firstProp * secondProp
 

@@ -123,10 +123,10 @@ from index = 0 to 100 step 2:
 
 #foreach & arrays & dictionaries
 list = [1, 2, 3, 4]
-dict = [
-    abc = 'abc',
-    123 = '123',
-]
+dict = {
+    abc:  'abc',
+    123: '123',
+}
 
 for index in list as val:
     print(`${val} is position ${index} in list`)
@@ -141,7 +141,7 @@ while cond:
 #do while
 repeat:
     print('oi')
-while cond
+while cond:
 
 #functions fora das classes, se não tiver return, retornará null
 function test(fistProp, secondProp = false):

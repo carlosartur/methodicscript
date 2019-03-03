@@ -17,6 +17,7 @@ var fs = require('fs'),
     specialFunctionsUtilized = [],
     current_class = '',
     current_attr = null,
+    inside_do = false,
     n_line;
 String.prototype.replaceAll = function(search, replacement) {
     replacement = typeof replacement == "undefined" ? '' : replacement;
@@ -43,7 +44,10 @@ var openBlockRegex = {
     _switch:    /(switch\s.{1,}:)/,
     _case:      /(case\s.{1,}:)/,
     _default:   /(default:)/,
-    _from:      /^(from).{1,}(step (-*)\d{1,}:)$/
+    _from:      /^(from).{1,}(step (-*)\d{1,}:)$/,
+    _foreach:   /^(for).*(as \w*:)$/,
+    _while:     /(while\s.{1,}:)/,
+    _repeat:    /(repeat:)/,
 };
 
 var kinds_of_blocks = {
@@ -170,7 +174,21 @@ var kinds_of_blocks = {
         has_name: false,
         has_params: true,
         params_regex: /(?![from])(.{1,})(?<!:)/,
-    }
+    },
+    _foreach: {
+        has_name: false,
+        has_params: true,
+        params_regex: /(?![for])(.{1,})(?<!:)/,
+    },
+    _while: {
+        has_name: false,
+        has_params: true,
+        params_regex: /(?![while])(.{1,})(?<!:)/,
+    },
+    _repeat: {
+        has_name: false,
+        has_params: false
+    },
 };
 
 var specialFunctions = {
@@ -233,11 +251,15 @@ var blockFactory = (type, name, params) => {
         case "default":
             return new _conditionals(type, params)
         case "from":
+        case "foreach":
+        case "while":
+        case "repeat":
             return new _loop(type, params)
         default:
             return new Block(type, params);
     }
 }
+
 class Block {
     constructor (type, params) {
         this.type = type;
@@ -637,15 +659,40 @@ class _conditionals extends Block {
 class _loop extends Block {
     constructor(type, params) {
         super(type, params);
-        console.log(this);
+        if (this.type == "repeat") {
+            inside_do = true;
+        }
+        this.is_closing_of_repeat = false;
     }
 
     open() {
         return this[`open${this.type}`];
     }
 
+    close() {
+        if (this.type == "repeat" || this.is_closing_of_repeat) {
+            return '';
+        }
+        return super.close();
+    }
+
+    get openrepeat() {
+        return "do {";
+    }
+
+    get openwhile() {
+        var str_return = `${inside_do ? '}' : ''} while(${this.params}) ${inside_do ? ';' : '{'}`;
+        this.is_closing_of_repeat = inside_do;
+        inside_do = !inside_do;
+        return str_return;
+    }
+
+    get openforeach() {
+        return `for (var ${this.indexVar} in ${this.interatorVar}) { var ${this.aliasVar} = ${this.interatorVar}[${this.indexVar}]`;
+    }
+
     get openfrom() {
-        var operator = this.to < 0 ? ">=" : "<=";
+        var operator = this.step < 0 ? ">=" : "<=";
         return `for (var ${this.from}; ${this.indexVar} ${operator} ${this.to}; ${this.indexVar} += (${this.step}) ) {`;
     }
 
@@ -674,14 +721,48 @@ class _loop extends Block {
     
     get indexVar() {
         if (!this._indexVar) {
-            this._indexVar = this.params
-                .match(/( \w{3,})/)
-                .shift()
-                .replace('from ', '');
+            if (this.type == "from") {
+                this._indexVar = this.params
+                    .match(/( \w{3,})/)
+                    .shift()
+                    .replace('from ', '');
+            } else if (this.type == "foreach") {
+                this._indexVar = this.params
+                    .match(/((.)*(in))/)
+                    .shift()
+                    .replace('in ', '')
+                    .trim()
+                    .split(' ')[0];
+
+            } else {
+                throw new Error(`Loop type detection error. Type ${this.type}. In line ${n_line}`);
+            }
         }
         return this._indexVar;
     }
     
+    get interatorVar() {
+        if (!this._interator_var) {
+            this._interator_var = this.params
+                .match(/(in (.)*(as))/)
+                .shift()
+                .replace(' as', '')
+                .replace('in ', '');
+        }
+        return this._interator_var;
+    }
+
+    get aliasVar() {
+        if (!this._alias_var) {
+            console.log([this.params, this.params.match(/(as (.)*)/)])
+            this._alias_var = this.params
+                .match(/(as (.)*)/)
+                .shift()
+                .replace('as ', '');
+        }
+        return this._alias_var;
+    }
+
     get step() {
         if (!this._step) {
             this._step = this.params
