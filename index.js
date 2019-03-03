@@ -28,7 +28,8 @@ var openBlockRegex = {
     _public:    /public:/,
     _private:   /private:/,
     _static:    /static:/,
-    _method:    /(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/.t,
+    _method:    /(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
+    _methodwithdefaultparams: /(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w][\s]{0,}(=(.){1,})?,?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
     _extends:   /^(extends )/,
     _const:     /(const [A-Z]{1,})/,
     _attr:      /(attr[\s]{1,}[\w]+[\s]{0,}?:?)+/,
@@ -42,7 +43,7 @@ var openBlockRegex = {
     _switch:    /(switch\s.{1,}:)/,
     _case:      /(case\s.{1,}:)/,
     _default:   /(default:)/,
-    _from:      /^(from).{1,}(step \d{1,}:)$/
+    _from:      /^(from).{1,}(step (-*)\d{1,}:)$/
 };
 
 var kinds_of_blocks = {
@@ -70,6 +71,13 @@ var kinds_of_blocks = {
         has_params: true
     },
     _method: {
+        must_be_child: true,
+        can_be_inside: ['public', 'private', 'static'],
+        close: 'return this;}// method',
+        name_regex: /(method (\w*))/i,
+        has_params: true
+    },
+    _methodwithdefaultparams: {
         must_be_child: true,
         can_be_inside: ['public', 'private', 'static'],
         close: 'return this;}// method',
@@ -198,6 +206,10 @@ var blockFactory = (type, name, params) => {
     switch (type) {
         case "class":
             return new _class(type, name, params);
+        case "methodwithdefaultparams":
+            var methodObj = new _method(type, name, params);
+            methodObj.hasDefaultParams();
+            return methodObj;
         case "method":
             return new _method(type, name, params);
         case "public":
@@ -443,11 +455,17 @@ class _method extends Block {
     constructor (type, name, params) {
         super(type, params);
         this.name = this.validName(name, /^[a-z]+((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?$/, 'camelCase with leading lowercase.');
+        this.has_default_params = false;
+    }
+
+    hasDefaultParams() {
+        this.has_default_params = true;
     }
 
     open (number_line) {
         this.verifyCorrectPlace(number_line);
         var ret = '';
+        this.defaultValuesParams;
         if (!current_class.opened) {
             ret += current_class.open();
         }
@@ -468,8 +486,37 @@ class _method extends Block {
             case "static":
                 return `${ret} static ${this.name}(${this.params}) {`;
         }
+        let default_params_lines = this.defaultValuesParams();
         return `${ret} ${getter}
-                ${current_visibility == "static" ? "static" : ''} __${this.name}(${this.params}) {`
+                ${current_visibility == "static" ? "static" : ''} __${this.name}(${this.params}) { ${default_params_lines}`
+    }
+
+    defaultValuesParams() {
+        if(!this.has_default_params) {
+            return '';
+        }
+        let splited_params = this.params.split(',').map(function(item) {
+                if (item.indexOf('=') < 0) {
+                    return false;
+                }
+                let attr_n_value = item.split('=');
+                return {
+                    attr : attr_n_value[0].trim(), 
+                    value: attr_n_value[1].trim()
+                };
+            }),
+            str_return = '',
+            params_names = [];
+        for (var ind in splited_params) {
+            var splited_params_item = splited_params[ind];
+            params_names.push(splited_params_item.attr)
+            if (!splited_params_item) {
+                continue;
+            }
+            str_return += `${splited_params_item.attr} = typeof ${splited_params_item.attr} !== 'undefined' ? ${splited_params_item.attr} : ${splited_params_item.value};`;
+        }
+        this.params = params_names.join(', ');
+        return str_return;
     }
 }
 
@@ -598,7 +645,8 @@ class _loop extends Block {
     }
 
     get openfrom() {
-        return `for (var ${this.from}; ${this.to}; ${this.indexVar} += (${this.step}) ) {`;
+        var operator = this.to < 0 ? ">=" : "<=";
+        return `for (var ${this.from}; ${this.indexVar} ${operator} ${this.to}; ${this.indexVar} += (${this.step}) ) {`;
     }
 
     get to() {
@@ -722,7 +770,7 @@ var lineToLineTranspiller = (file) => {
         if (is_block) {
             continue;
         }
-        //bruteline(line);
+        bruteline(line);
     }
     for (var index in specialFunctionsUtilized) {
         js_transpiled.push(specialFunctions[specialFunctionsUtilized[index]])

@@ -33,8 +33,11 @@ class Animal extends Living {
     //public
     //getters e setters
 
-    get name() {} //get
+    get name() {
+        return this.name
+    } //get
     set name(value) {
+        this.name = value
         //valor padrão
     } //set
 
@@ -47,19 +50,56 @@ class Animal extends Living {
         this.__height = val;
     }
 
-    get color() {} //get
+    get color() {
+        return this.color
+    } //get
     set color(value) {
+        this.color = value
         //construtor padrão, se não for setado, será assim: os parametros serão recebidos em ordem que aparecem na classe, e serão setados conforme passados
     } //set
 
-    //se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
-    //valor padrão de parametro
-    //interpolação de strings, valores com ${valor} e métodos ou códigos com ${código}
+    constructor(name, height, color, foot_number, size) {
+        super();
+        this.__set_defaults();
+        this.setParamsAsAttrs(name, height, color, foot_number, size)
+        super.constructor()
+        //se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
+    }
+    bla() {
+        return this.__bla.apply(this, arguments);
+    }
+    __bla() {
+        print(this.name)
+        //valor padrão de parametro
+        return this;
+    } // method //method
+    blaWorldDefaultParams() {
+        return this.__blaWorldDefaultParams.apply(this, arguments);
+    }
+    __blaWorldDefaultParams(worldILive) {
+        worldILive = typeof worldILive !== 'undefined' ? worldILive : "Earth";
+        //interpolação de strings, valores com ${valor} e métodos ou códigos com ${código}
+        print(`Hello, ${worldILive}, I am ${this.name}`)
+        print(`${ 2 + 2 }`)
+        return true
+        return this;
+    } // method //methodwithdefaultparams
+    blaWorld2() {
+        return this.__blaWorld2.apply(this, arguments);
+    }
+    __blaWorld2(worldILive, worldYouLive) {
+        print(`Hello, ${worldILive}, I am ${this.name}`)
+        return true
+        return this;
+    } // method //method
 
     //private
 
-    get foot_number() {} //get
+    get foot_number() {
+        return this.foot_number / 2
+    } //get
     set foot_number(value) {
+        this.foot_number * 2
         //totalmente privado, só acessível pelo próprio objeto
     } //set
 
@@ -70,6 +110,14 @@ class Animal extends Living {
     set size(val) {
         throw new Error("size is a private attribute, it's value can't be changed outside it's class")
     }
+    privateMethod() {
+        throw new Error('Trying to access a private method privateMethod.');
+    }
+    __privateMethod(worldILive, worldYouLive) {
+        print(`Hello, ${worldILive}, I am ${this.name}`)
+        return true
+        return this;
+    } // method //method
 
     //static
     static get KINGDOM() {
@@ -80,13 +128,12 @@ class Animal extends Living {
     }
     //static methods returns null if there's not a return statement
     //const
-    //fora da classe, algumas coisas mudam
+    static staticMethod() {
+        return true
+        //fora da classe, algumas coisas mudam
+        return null
+    } //method
 
-    constructor() {
-        super();
-        this.__set_defaults();
-
-    }
     __set_defaults() {
         this.__name = null;
         this.__height = 125;
@@ -96,34 +143,70 @@ class Animal extends Living {
     }
 } //class 
 trait(Animal, Kinds, Planets, Live) //class Animal
+var x = new Animal('Rex', 120, 'brown', 4, 150)
 //tipos primitivos, apenas booleanos, numeros e strings
+var y = 123.123,
+    z = 'Abc',
+    a = false
 //instruções de mais de uma linha seguem forma do javascript
+y =
+    new Animal('Rex', 120, 'brown', 4, 150)
 //if e else
-if (1 == 2) {} //if
-else if (100 > 200) {} //elseif
-else if (!(1000 < 2000)) {} //elseunless
-else {} //else
+if (1 == 2) {
+    print(1)
+} //if
+else if (100 > 200) {
+    print(2)
+} //elseif
+else if (!(1000 < 2000)) {
+    print(4)
+} //elseunless
+else {
+    print(3)
+} //else
 if (!(1 == 2)) {
+    print('oi')
     //switch - não usar break, não é necessário.
 } //unless
 switch (value) {
     case 1:
+        print('is 1')
         break; //case
     case 2:
+        print('is 2')
         break; //case
     default:
+        print('is another')
         /**
          *laços de repetição
          */
         //for classico
         //default
 } //switch
-for (var index = 0; index = 100; index += (2)) {
+for (var index = 0; index <= 100; index += (2)) {
+    print(index)
     //foreach & arrays & dictionaries
 } //from
+list = [1, 2, 3, 4]
+dict = [
+    abc = 'abc',
+    123 = '123',
+]
+for index in list as val:
+    print(`${val} is position ${index} in list`)
+for index in dict as val:
+    print(`${val} is position ${index} in dict`)
 //while
+while cond:
+    print('oi')
 //do while
+repeat:
+    print('oi')
+while cond
 //functions fora das classes, se não tiver return, retornará null
+function test(fistProp, secondProp = false):
+return firstProp * secondProp
+
 function trait(_class, ..._traits) {
     for (var _trait of _traits) {
         for (var a of Object.getOwnPropertyNames(_trait.prototype)) {

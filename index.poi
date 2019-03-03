@@ -50,17 +50,17 @@ class Animal:
 
         #se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
         method bla:
-            print this.name
+            print(this.name)
         
         #valor padrão de parametro
-        method blaWorld(worldILive = "Earth"):
+        method blaWorldDefaultParams(worldILive = "Earth"):
             #interpolação de strings, valores com ${valor} e métodos ou códigos com ${código}
-            print "Hello, ${worldILive}, I am ${this.name}"
-            print "${ 2 + 2 }"
+            print(`Hello, ${worldILive}, I am ${this.name}`)
+            print(`${ 2 + 2 }`)
             return true
         
         method blaWorld2(worldILive, worldYouLive):
-            print "Hello, ${worldILive}, I am ${this.name}"
+            print(`Hello, ${worldILive}, I am ${this.name}`)
             return true
     private:
         attr foot_number:
@@ -73,7 +73,7 @@ class Animal:
         attr size 
         
         method privateMethod(worldILive, worldYouLive):
-            print "Hello, ${worldILive}, I am ${this.name}"
+            print(`Hello, ${worldILive}, I am ${this.name}`)
             return true
         
     static:
@@ -94,32 +94,32 @@ y =
 
 #if e else
 if 1 == 2:
-    print 1
+    print(1)
 elseif 100 > 200:
-    print 2
+    print(2)
 elseunless 1000 < 2000:
-    print 4;
+    print(4)
 else:
-    print 3
+    print(3)
 
 unless 1 == 2:
-    print 'oi'
+    print('oi')
 
 #switch - não usar break, não é necessário.
 switch value:
     case 1:
-        print 'is 1'
+        print('is 1')
     case 2:
-        print 'is 2'
+        print('is 2')
     default:
-        print 'is another'
+        print('is another')
 
 ###
 laços de repetição
 ###
 #for classico
-from index = 0 to index = 100 step 2:
-    print index
+from index = 0 to 100 step 2:
+    print(index)
 
 #foreach & arrays & dictionaries
 list = [1, 2, 3, 4]
@@ -129,18 +129,18 @@ dict = [
 ]
 
 for index in list as val:
-    print "${val} is position ${index} in list"
+    print(`${val} is position ${index} in list`)
 
 for index in dict as val:
-    print "${val} is position ${index} in dict"
+    print(`${val} is position ${index} in dict`)
 
 #while
 while cond:
-    print 'oi'
+    print('oi')
 
 #do while
 repeat:
-    print 'oi'
+    print('oi')
 while cond
 
 #functions fora das classes, se não tiver return, retornará null
