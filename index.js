@@ -3,7 +3,6 @@ var fs = require('fs'),
     js_transpiled = [],
     current_visibility = '',
     is_comment = false,
-    inside_string = false,
     block_stack = [],
     classes = {},
     spaces = [],
@@ -31,6 +30,8 @@ var openBlockRegex = {
     _static:    /static:/,
     _method:    /(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
     _methodwithdefaultparams: /(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w][\s]{0,}(=(.){1,})?,?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
+    _function:  /(function[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
+    _functionwithdefaultparams: /(function[\s]{1,}[\w]+[\s]{0,}?(\(([\w][\s]{0,}(=(.){1,})?,?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
     _extends:   /^(extends )/,
     _const:     /(const [A-Z]{1,})/,
     _attr:      /(attr[\s]{1,}[\w]+[\s]{0,}?:?)+/,
@@ -81,11 +82,23 @@ var kinds_of_blocks = {
         name_regex: /(method (\w*))/i,
         has_params: true
     },
+    _function: {
+        must_be_child: false,
+        close: 'return null;}// function',
+        name_regex: /(function (\w*))/i,
+        has_params: true
+    },
     _methodwithdefaultparams: {
         must_be_child: true,
         can_be_inside: ['public', 'private', 'static'],
         close: 'return this;}// method',
         name_regex: /(method (\w*))/i,
+        has_params: true
+    },
+    _functionwithdefaultparams: {
+        must_be_child: false,
+        close: 'return null;}// function',
+        name_regex: /(function (\w*))/i,
         has_params: true
     },
     _private: {
@@ -204,7 +217,6 @@ var specialFunctions = {
     }
 }
 
-
 var print = function () {
     switch (arguments.length) {
         case 0:
@@ -225,10 +237,12 @@ var blockFactory = (type, name, params) => {
         case "class":
             return new _class(type, name, params);
         case "methodwithdefaultparams":
+        case "functionwithdefaultparams":
             var methodObj = new _method(type, name, params);
             methodObj.hasDefaultParams();
             return methodObj;
         case "method":
+        case "function":
             return new _method(type, name, params);
         case "public":
         case "private":
@@ -478,6 +492,7 @@ class _method extends Block {
         super(type, params);
         this.name = this.validName(name, /^[a-z]+((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?$/, 'camelCase with leading lowercase.');
         this.has_default_params = false;
+        this.isFunction = this.type.indexOf('function') != -1;
     }
 
     hasDefaultParams() {
@@ -487,16 +502,11 @@ class _method extends Block {
     open (number_line) {
         this.verifyCorrectPlace(number_line);
         var ret = '';
-        this.defaultValuesParams;
         if (!current_class.opened) {
             ret += current_class.open();
         }
         if (this.name == 'constructor') {
-            if (current_class.abstract) {
-                throw new Error(`A abstract class can't have a constructor method. On line ${number_line}`);
-            }
-            current_class._constructor = true;
-            return `${ret} constructor(${this.params}) { super(); this.__set_defaults();`;
+            return this.openConstructor(ret);
         }
         switch (current_visibility) {
             case "public":
@@ -509,8 +519,19 @@ class _method extends Block {
                 return `${ret} static ${this.name}(${this.params}) {`;
         }
         let default_params_lines = this.defaultValuesParams();
+        if (this.isFunction) {
+            return `function ${this.name}(${this.params}) { ${default_params_lines}`;
+        }
         return `${ret} ${getter}
                 ${current_visibility == "static" ? "static" : ''} __${this.name}(${this.params}) { ${default_params_lines}`
+    }
+
+    openConstructor(ret) {
+        if (current_class.abstract) {
+            throw new Error(`A abstract class can't have a constructor method. On line ${number_line}`);
+        }
+        current_class._constructor = true;
+        return `${ret} constructor(${this.params}) { super(); this.__set_defaults();`;
     }
 
     defaultValuesParams() {
@@ -518,13 +539,10 @@ class _method extends Block {
             return '';
         }
         let splited_params = this.params.split(',').map(function(item) {
-                if (item.indexOf('=') < 0) {
-                    return false;
-                }
                 let attr_n_value = item.split('=');
                 return {
                     attr : attr_n_value[0].trim(), 
-                    value: attr_n_value[1].trim()
+                    value: attr_n_value.length > 1 ? attr_n_value[1].trim() : null
                 };
             }),
             str_return = '',
@@ -532,7 +550,7 @@ class _method extends Block {
         for (var ind in splited_params) {
             var splited_params_item = splited_params[ind];
             params_names.push(splited_params_item.attr)
-            if (!splited_params_item) {
+            if (!splited_params_item.value) {
                 continue;
             }
             str_return += `${splited_params_item.attr} = typeof ${splited_params_item.attr} !== 'undefined' ? ${splited_params_item.attr} : ${splited_params_item.value};`;
@@ -754,7 +772,6 @@ class _loop extends Block {
 
     get aliasVar() {
         if (!this._alias_var) {
-            console.log([this.params, this.params.match(/(as (.)*)/)])
             this._alias_var = this.params
                 .match(/(as (.)*)/)
                 .shift()
@@ -853,6 +870,7 @@ var lineToLineTranspiller = (file) => {
         }
         bruteline(line);
     }
+    closeBlock(0);
     for (var index in specialFunctionsUtilized) {
         js_transpiled.push(specialFunctions[specialFunctionsUtilized[index]])
     }
@@ -887,6 +905,7 @@ var comment = () => {
 };
 
 var bruteline = (line) => {
+    line = line.replaceAll('this.', "this.__")
     js_transpiled.push(line);
 };
 

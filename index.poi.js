@@ -34,10 +34,10 @@ class Animal extends Living {
     //getters e setters
 
     get name() {
-        return this.name
+        return this.__name
     } //get
     set name(value) {
-        this.name = value
+        this.__name = value
         //valor padrão
     } //set
 
@@ -51,17 +51,17 @@ class Animal extends Living {
     }
 
     get color() {
-        return this.color
+        return this.__color
     } //get
     set color(value) {
-        this.color = value
+        this.__color = value
         //construtor padrão, se não for setado, será assim: os parametros serão recebidos em ordem que aparecem na classe, e serão setados conforme passados
     } //set
 
     constructor(name, height, color, foot_number, size) {
         super();
         this.__set_defaults();
-        this.setParamsAsAttrs(name, height, color, foot_number, size)
+        this.__setParamsAsAttrs(name, height, color, foot_number, size)
         super.constructor()
         //se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
     }
@@ -69,7 +69,7 @@ class Animal extends Living {
         return this.__bla.apply(this, arguments);
     }
     __bla() {
-        print(this.name)
+        print(this.__name)
         //valor padrão de parametro
         return this;
     } // method //method
@@ -79,7 +79,7 @@ class Animal extends Living {
     __blaWorldDefaultParams(worldILive) {
         worldILive = typeof worldILive !== 'undefined' ? worldILive : "Earth";
         //interpolação de strings, valores com ${valor} e métodos ou códigos com ${código}
-        print(`Hello, ${worldILive}, I am ${this.name}`)
+        print(`Hello, ${worldILive}, I am ${this.__name}`)
         print(`${ 2 + 2 }`)
         return true
         return this;
@@ -88,7 +88,7 @@ class Animal extends Living {
         return this.__blaWorld2.apply(this, arguments);
     }
     __blaWorld2(worldILive, worldYouLive) {
-        print(`Hello, ${worldILive}, I am ${this.name}`)
+        print(`Hello, ${worldILive}, I am ${this.__name}`)
         return true
         return this;
     } // method //method
@@ -96,10 +96,10 @@ class Animal extends Living {
     //private
 
     get foot_number() {
-        return this.foot_number / 2
+        return this.__foot_number / 2
     } //get
     set foot_number(value) {
-        this.foot_number * 2
+        this.__foot_number * 2
         //totalmente privado, só acessível pelo próprio objeto
     } //set
 
@@ -114,7 +114,7 @@ class Animal extends Living {
         throw new Error('Trying to access a private method privateMethod.');
     }
     __privateMethod(worldILive, worldYouLive) {
-        print(`Hello, ${worldILive}, I am ${this.name}`)
+        print(`Hello, ${worldILive}, I am ${this.__name}`)
         return true
         return this;
     } // method //method
@@ -207,12 +207,15 @@ while (cond) {
 } //while
 do {
     print('oi')
+
 } while (cond);
 //functions fora das classes, se não tiver return, retornará null
 
-function test(fistProp, secondProp = false):
-return firstProp * secondProp
-
+function test(fistProp, secondProp) {
+    secondProp = typeof secondProp !== 'undefined' ? secondProp : false;
+    return firstProp * secondProp
+    return null;
+} // function //functionwithdefaultparams
 function trait(_class, ..._traits) {
     for (var _trait of _traits) {
         for (var a of Object.getOwnPropertyNames(_trait.prototype)) {
