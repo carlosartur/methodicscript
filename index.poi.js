@@ -14,6 +14,27 @@ class Living extends Object {
     }
     __set_defaults() {}
 } //class  //class Living
+//abstract
+class Kinds extends Object {
+    //public
+    helloWorld() {
+        return this.__helloWorld.apply(this, arguments);
+    }
+    __helloWorld() {
+        print('Hello World')
+        return this;
+    } // method //method
+
+    constructor() {
+        super();
+        this.__set_defaults();
+
+        if (new.target === Kinds) {
+            throw new TypeError("Cannot construct Abstract instances directly");
+        }
+    }
+    __set_defaults() {}
+} //class  //class Kinds
 //sempre primeira linha não comentário, se não hover, vai extender classe object
 class Animal extends Living {
     /**
@@ -211,11 +232,41 @@ do {
 } while (cond);
 //functions fora das classes, se não tiver return, retornará null
 
-function test(fistProp, secondProp) {
-    secondProp = typeof secondProp !== 'undefined' ? secondProp : false;
+function test(firstProp, secondProp) {
+    secondProp = typeof secondProp !== 'undefined' ? secondProp : 1;
     return firstProp * secondProp
     return null;
 } // function //functionwithdefaultparams
+try {
+    print('hello')
+} catch (exp) {
+    if (exp instanceof TypeError) {
+        print('TypeError')
+    } else
+    if (exp instanceof ExampleExeption) {
+        print('ExampleExeption')
+    } else {
+        print('Any other exeption')
+    }
+} finally {
+    print('finally')
+}
+
+function print() {
+    switch (arguments.length) {
+        case 0:
+            console.log();
+            return;
+        case 1:
+            console.log(arguments[0]);
+            return;
+        default:
+            let args = [...arguments];
+            console.log(args);
+            return;
+    }
+}
+
 function trait(_class, ..._traits) {
     for (var _trait of _traits) {
         for (var a of Object.getOwnPropertyNames(_trait.prototype)) {

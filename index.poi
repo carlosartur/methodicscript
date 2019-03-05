@@ -6,6 +6,12 @@ Comentários de múltiplas linhas, documentações
 class Living:
     abstract
 
+class Kinds:
+    abstract
+    public:
+        method helloWorld():
+            print('Hello World')
+
 class Animal:
     #sempre primeira linha não comentário, se não hover, vai extender classe object
     extends Living
@@ -45,8 +51,8 @@ class Animal:
 
         #construtor padrão, se não for setado, será assim: os parametros serão recebidos em ordem que aparecem na classe, e serão setados conforme passados
         method constructor(name, height, color, foot_number, size):
-            this.setParamsAsAttrs(name, height, color, foot_number, size)
             super.constructor()
+            this.setParamsAsAttrs(name, height, color, foot_number, size)
 
         #se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
         method bla:
@@ -144,5 +150,17 @@ repeat:
 while cond:
 
 #functions fora das classes, se não tiver return, retornará null
-function test(fistProp, secondProp = false):
+function test(firstProp, secondProp = 1):
     return firstProp * secondProp
+
+try:
+    print('hello')
+catch exp:
+    is TypeError:
+        print('TypeError')
+    is ExampleExeption:
+        print('ExampleExeption')
+    another:
+        print('Any other exeption')
+finally:
+    print('finally')

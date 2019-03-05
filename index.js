@@ -13,10 +13,11 @@ var fs = require('fs'),
         "long", "native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "super", 
         "switch", "synchronized", "this", "throw", "throws", "transient", "true", "try", "typeof", "var", "void", "volatile", 
         "while", "with"],
-    specialFunctionsUtilized = [],
+    specialFunctionsUtilized = ['print'],
     current_class = '',
     current_attr = null,
     inside_do = false,
+    current_error_handling = false,
     n_line;
 String.prototype.replaceAll = function(search, replacement) {
     replacement = typeof replacement == "undefined" ? '' : replacement;
@@ -49,6 +50,11 @@ var openBlockRegex = {
     _foreach:   /^(for).*(as \w*:)$/,
     _while:     /(while\s.{1,}:)/,
     _repeat:    /(repeat:)/,
+    _try:       /(try:)/,
+    _catch:     /(catch\s.{1,}:)/,
+    _is:        /(is\s.{1,}:)/,
+    _finally:   /(finally:)/,
+    _another:   /(another:)/,
 };
 
 var kinds_of_blocks = {
@@ -202,20 +208,34 @@ var kinds_of_blocks = {
         has_name: false,
         has_params: false
     },
-};
-
-var specialFunctions = {
-    trait : function trait(_class, ..._traits) {
-        for(var _trait of _traits) {
-            for (var a of Object.getOwnPropertyNames(_trait.prototype)) {
-                 if (_class.prototype.hasOwnProperty(a)) {
-                    continue;
-                 }
-                 _class.prototype[a] = _trait.prototype[a];
-            }
-        }
+    _try: {
+        has_name: false,
+        has_params: false
+    },
+    _catch: {
+        has_name: false,
+        has_params: true,
+        params_regex: /(?![catch])(.{1,})(?<!:)/
+    },
+    _is: {
+        has_name: false,
+        has_params: true,
+        params_regex: /(?![is])(.{1,})(?<!:)/,
+        close : '} else ',
+        must_be_child: true,
+        can_be_inside: ['catch'],
+    },
+    _finally: {
+        has_name: false,
+        has_params: false
+    },
+    _another: {
+        has_name: false,
+        has_params: false,
+        must_be_child: true,
+        can_be_inside: ['catch']
     }
-}
+};
 
 var print = function () {
     switch (arguments.length) {
@@ -230,6 +250,33 @@ var print = function () {
             console.log(args);
             return;
     }
+}
+
+var specialFunctions = {
+    trait : function trait(_class, ..._traits) {
+        for(var _trait of _traits) {
+            for (var a of Object.getOwnPropertyNames(_trait.prototype)) {
+                 if (_class.prototype.hasOwnProperty(a)) {
+                    continue;
+                 }
+                 _class.prototype[a] = _trait.prototype[a];
+            }
+        }
+    },
+    print : function print() {
+        switch (arguments.length) {
+            case 0:
+                console.log();
+                return;
+            case 1:
+                console.log(arguments[0]);
+                return;
+            default:
+                let args = [...arguments];
+                console.log(args);
+                return;
+        }
+    },
 }
 
 var blockFactory = (type, name, params) => {
@@ -269,6 +316,12 @@ var blockFactory = (type, name, params) => {
         case "while":
         case "repeat":
             return new _loop(type, params)
+        case "try":
+        case "catch":
+        case "is":
+        case "finally":
+        case "another":
+            return new _error_handling(type, params)
         default:
             return new Block(type, params);
     }
@@ -315,7 +368,7 @@ class Block {
         line = typeof line == 'undefined' ? '' : line;
         switch (this.type) {
             default:
-                throw new Error(`Block ${this.type} doesn't exist. On line ${parseInt(number_line) + 1}`);
+                throw new SyntaxError(`Block ${this.type} doesn't exist. On line ${parseInt(number_line) + 1}`);
         }
     }
 
@@ -326,15 +379,15 @@ class Block {
     verifyCorrectPlace() {
         var father_block = block_stack[block_stack.length - 2];
         if (!this.can_be_child && father_block) {
-            throw new Error(`${this.type} can't be inside of ${father_block.type}. On line ${parseInt(n_line) + 1}`);
+            throw new SyntaxError(`${this.type} can't be inside of ${father_block.type}. On line ${parseInt(n_line) + 1}`);
         }
         if (this.must_be_child) {
             var must_be_inside_of = this.can_be_inside.length > 1 ? `one of this: ${this.can_be_inside.join()}` : `of ${this.can_be_inside[0]}`;
             if (!father_block) {
-                throw new Error(`${this.type} can't be alone, it must be inside ${must_be_inside_of}. On line ${parseInt(n_line) + 1}`);
+                throw new SyntaxError(`${this.type} can't be alone, it must be inside ${must_be_inside_of}. On line ${parseInt(n_line) + 1}`);
             }
             if (this.can_be_inside.indexOf(father_block.type) == -1) {
-                throw new Error(`${this.type} can't be inside ${father_block.type}, it must be inside ${must_be_inside_of}. On line ${parseInt(n_line) + 1}`);
+                throw new SyntaxError(`${this.type} can't be inside ${father_block.type}, it must be inside ${must_be_inside_of}. On line ${parseInt(n_line) + 1}`);
             }
         }
     }
@@ -353,13 +406,13 @@ class Block {
     validName (name, regex, regexName) {
         var error_name = `Bad programming pratice error on line ${n_line * 1 + 1}.`;
         if (name == undefined) {
-            throw new Error(`${error_name} Names can't be undefined. Please fix it before trying compile again.`);            
+            throw new SyntaxError(`${error_name} Names can't be undefined. Please fix it before trying compile again.`);            
         }
         if (name.length < 3) {
-            throw new Error(`${error_name} Names can't have less than 3 chars. Please fix it before trying compile again.`);
+            throw new SyntaxError(`${error_name} Names can't have less than 3 chars. Please fix it before trying compile again.`);
         }
         if (js_reserved_words.indexOf(name) != -1 || poirot_reserved_words.indexOf(name) != -1) {
-            throw new Error(`${error_name} Invalid name, ${name} is a reserved JS or poirot word. Please fix it before trying compile again.`);
+            throw new SyntaxError(`${error_name} Invalid name, ${name} is a reserved JS or poirot word. Please fix it before trying compile again.`);
         }
         var regexNameOf = {
             _const: {
@@ -368,7 +421,7 @@ class Block {
             }
         };
         if (!name.match(regex)) {
-            throw new Error(`${error_name} ${this.type} must have name written on ${regexName}`);
+            throw new SyntaxError(`${error_name} ${this.type} must have name written on ${regexName}`);
         }
         return name;
     }
@@ -753,7 +806,7 @@ class _loop extends Block {
                     .split(' ')[0];
 
             } else {
-                throw new Error(`Loop type detection error. Type ${this.type}. In line ${n_line}`);
+                throw new SyntaxError(`Loop type detection error. Type ${this.type}. In line ${n_line}`);
             }
         }
         return this._indexVar;
@@ -788,6 +841,45 @@ class _loop extends Block {
                 .replace('step ', '');
         }
         return this._step;
+    }
+}
+
+class _error_handling extends Block {
+    constructor(type, params) {
+        super(type, params)
+        if (type != 'is') {
+            current_error_handling = this;
+        }
+        this.has_is_inside = false;
+    }
+
+    open() {
+        return this[`open${this.type}`];
+    }
+
+    get openis() {
+        current_error_handling.has_is_inside = true;
+        return `if (${current_error_handling.params} instanceof ${this.params}) {`;
+    }
+
+    get opencatch() {
+        return `catch (${this.params}) {`;
+    }
+
+    get opentry() {
+        return 'try {';
+    }
+
+    get openfinally() {
+        return 'finally {';
+    }
+
+    get openanother() {
+        return ' {';
+    }
+
+    close() {
+        return `${this._close}`;
     }
 }
 
@@ -877,7 +969,7 @@ var lineToLineTranspiller = (file) => {
     var final_compilled_js = beautify(js_transpiled.join('\n'), { indent_size: 4, space_in_empty_paren: true });
     fs.writeFile('index.poi.js', final_compilled_js, function (err) {
         if (err) throw err;
-        print('Saved!');
+        console.log('Saved!');
     });
 
 };
@@ -889,7 +981,7 @@ var closeBlock = (new_stack_size) => {
             try {
                 js_transpiled.push(block_closed.close());
             } catch (e) {
-                print(block_stack, e, n_line);
+                console.log(block_stack, e, n_line);
             }
         }
     }
