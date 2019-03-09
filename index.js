@@ -6,7 +6,7 @@ var fs = require('fs'),
     block_stack = [],
     classes = {},
     spaces = [],
-    poirot_reserved_words = ["method", "attr", "get", "set", "elseif", "is", "unless", "another", "from", "to", "step"],
+    methodic_reserved_words = ["method", "attr", "get", "set", "elseif", "is", "unless", "another", "from", "to", "step"],
     js_reserved_words = ["abstract", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",,
         "debugger", "default", "delete", "do", "double", "else", "enum", "export", "extends", "false", "final", "finally", 
         "float", "for", "function", "goto", "if", "implements", "import", "in", "instanceof", "int", "interface", "let", 
@@ -411,8 +411,8 @@ class Block {
         if (name.length < 3) {
             throw new SyntaxError(`${error_name} Names can't have less than 3 chars. Please fix it before trying compile again.`);
         }
-        if (js_reserved_words.indexOf(name) != -1 || poirot_reserved_words.indexOf(name) != -1) {
-            throw new SyntaxError(`${error_name} Invalid name, ${name} is a reserved JS or poirot word. Please fix it before trying compile again.`);
+        if (js_reserved_words.indexOf(name) != -1 || methodic_reserved_words.indexOf(name) != -1) {
+            throw new SyntaxError(`${error_name} Invalid name, ${name} is a reserved JS or MTHS word. Please fix it before trying compile again.`);
         }
         var regexNameOf = {
             _const: {
@@ -883,7 +883,7 @@ class _error_handling extends Block {
     }
 }
 
-fs.readFile('index.poi', 'UTF-8', (err, contents) => {
+fs.readFile('index.mth', 'UTF-8', (err, contents) => {
     let file = contents.split('\n');
     lineToLineTranspiller(file);
 });
@@ -967,7 +967,7 @@ var lineToLineTranspiller = (file) => {
         js_transpiled.push(specialFunctions[specialFunctionsUtilized[index]])
     }
     var final_compilled_js = beautify(js_transpiled.join('\n'), { indent_size: 4, space_in_empty_paren: true });
-    fs.writeFile('index.poi.js', final_compilled_js, function (err) {
+    fs.writeFile('index.mth.js', final_compilled_js, function (err) {
         if (err) throw err;
         console.log('Saved!');
     });

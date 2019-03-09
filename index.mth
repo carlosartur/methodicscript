@@ -2,6 +2,61 @@
 Comentários de múltiplas linhas, documentações
 ###
 #comentários de linhas simples
+###
+Shape class, parent abstract class
+###
+class Shape:
+    abstract
+    public:
+        ###
+        @attribute area
+        ###
+        attr area = 0
+        
+        ###
+        Prints area
+        ###
+        method printArea:
+            print(this.area)
+
+class Circle:
+    extends Shape
+    public:
+        attr area:
+            get: method
+                return (this.radius ** 2) * Math.PI 
+        method constructor(radius):
+            this.radius = radius
+        
+    private:
+        attr radius = 0
+
+class Rectangle:
+    extends Shape
+    public:
+        method constructor(width, height):
+            this.width = width
+            this.height = height
+    private:
+        attr area:
+            get: method
+                return this.width * this.height
+        attr width = 0:
+            get: method
+                return this.width
+            set: method(width)
+                this.width = width
+        attr height = 0:
+            get: method
+                return this.height
+            set: method(height)
+                this.height = height
+
+class Square:
+    extends Rectangle
+    public:
+        method constructor(side):
+            this.width = this.height = side
 
 class Living:
     abstract

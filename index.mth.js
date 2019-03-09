@@ -2,6 +2,124 @@
  *Comentários de múltiplas linhas, documentações
  */
 //comentários de linhas simples
+/**
+ *Shape class, parent abstract class
+ */
+//abstract
+class Shape extends Object {
+    //public
+    /**
+     *@attribute area
+     */
+
+    /**
+     *Prints area
+     */
+    get area() {
+        return this.__area;
+    }
+    set area(val) {
+        this.__area = val;
+    }
+    printArea() {
+        return this.__printArea.apply(this, arguments);
+    }
+    __printArea() {
+        print(this.__area)
+        return this;
+    } // method //method
+
+    constructor() {
+        super();
+        this.__set_defaults();
+
+        if (new.target === Shape) {
+            throw new TypeError("Cannot construct Abstract instances directly");
+        }
+    }
+    __set_defaults() {
+        this.__area = 0;
+    }
+} //class  //class Shape
+class Circle extends Shape {
+    //public
+
+    get area() {
+        return (this.__radius ** 2) * Math.PI
+    } //get
+    set area(val) {
+        this.__area = val;
+    }
+    constructor(radius) {
+        super();
+        this.__set_defaults();
+        this.__radius = radius
+    }
+
+    //private
+
+    get radius() {
+        throw new Error("radius is a private attribute, it's value can't be get outside it's class")
+    }
+    set radius(val) {
+        throw new Error("radius is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    __set_defaults() {
+        this.__area = null;
+        this.__radius = 0;
+    }
+} //class  //class Circle
+class Rectangle extends Shape {
+    //public
+    constructor(width, height) {
+        super();
+        this.__set_defaults();
+        this.__width = width
+        this.__height = height
+    }
+
+    //private
+
+    get area() {
+        return this.__width * this.__height
+    } //get
+    set area(val) {
+        throw new Error("area is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    get width() {
+        return this.__width
+    } //get
+    set width(width) {
+        this.__width = width
+    } //set
+
+
+    get height() {
+        return this.__height
+    } //get
+    set height(height) {
+        this.__height = height
+    } //set
+
+
+    __set_defaults() {
+        this.__area = null;
+        this.__width = 0;
+        this.__height = 0;
+    }
+} //class  //class Rectangle
+class Square extends Rectangle {
+    //public
+    constructor(side) {
+        super();
+        this.__set_defaults();
+        this.__width = this.__height = side
+    }
+
+    __set_defaults() {}
+} //class  //class Square
 //abstract
 class Living extends Object {
     constructor() {
@@ -82,8 +200,8 @@ class Animal extends Living {
     constructor(name, height, color, foot_number, size) {
         super();
         this.__set_defaults();
-        this.__setParamsAsAttrs(name, height, color, foot_number, size)
         super.constructor()
+        this.__setParamsAsAttrs(name, height, color, foot_number, size)
         //se não houver um return, é a mesma coisa que "return this". se não tiver parametro nenhum, parenteses são opcionais
     }
     bla() {
