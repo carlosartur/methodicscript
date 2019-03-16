@@ -2,9 +2,49 @@
  *Comentários de múltiplas linhas, documentações
  */
 //comentários de linhas simples
-/**
- *Shape class, parent abstract class
- */
+class Colour extends Object { //public
+    printColour() {
+        return this.__printColour.apply(this, arguments);
+    }
+    __printColour() {
+        print(this.__colour)
+        return this;
+    } // method //method
+
+    //static
+    static get DEFAULT_COLOUR() {
+        return "#FFF"
+    }
+    static set DEFAULT_COLOUR(value) {
+        throw new Error("DEFAULT_COLOUR is a class constant, and can't have his value changed to " + value)
+    }
+    //const
+    static getDefaultColour() {
+        return Colour.DEFAULT_COLOUR
+        return null
+    } //method
+
+    //private
+
+    /**
+     *Shape class, parent abstract class
+     */
+    get colour() {
+        throw new Error("colour is a private attribute, it's value can't be get outside it's class")
+    }
+    set colour(val) {
+        throw new Error("colour is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    constructor() {
+        super();
+        this.__set_defaults();
+
+    }
+    __set_defaults() {
+        this.__colour = null;
+    }
+} //class  //class Colour
 //abstract
 class Shape extends Object {
     //public

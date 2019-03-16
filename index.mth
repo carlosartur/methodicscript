@@ -2,6 +2,18 @@
 Comentários de múltiplas linhas, documentações
 ###
 #comentários de linhas simples
+class Colour:
+    public:
+        method printColour:
+            print(this.colour)
+    static:
+        const DEFAULT_COLOUR = "#FFF"
+        method getDefaultColour:
+            return Colour.DEFAULT_COLOUR
+    private:
+        attr colour
+
+
 ###
 Shape class, parent abstract class
 ###
@@ -18,7 +30,7 @@ class Shape:
         ###
         method printArea:
             print(this.area)
-
+            
 class Circle:
     extends Shape
     public:

@@ -18,6 +18,7 @@ var fs = require('fs'),
     current_attr = null,
     inside_do = false,
     current_error_handling = false,
+    is_string_regex = /(["'`])(?:(?=(\\?))\2.)*?\1/g,
     n_line;
 String.prototype.replaceAll = function(search, replacement) {
     replacement = typeof replacement == "undefined" ? '' : replacement;
@@ -378,6 +379,9 @@ class Block {
      */
     verifyCorrectPlace() {
         var father_block = block_stack[block_stack.length - 2];
+        if (father_block && father_block.name && this.type == "class" && father_block.name == this.name) {
+            return true;
+        }
         if (!this.can_be_child && father_block) {
             throw new SyntaxError(`${this.type} can't be inside of ${father_block.type}. On line ${parseInt(n_line) + 1}`);
         }
@@ -904,11 +908,12 @@ var lineToLineTranspiller = (file) => {
         }
 
         //line is comment
-        if (/([#][^#])+/g.test(line)) {
+        if (/^(#(?!#))+/g.test(line)) {
             oneLineComment(line);
             continue;
         }
-        if (/([###])+/g.test(line)) {
+        
+        if (/^(###)+/g.test(line)) {
             comment(line);
             continue;
         }
@@ -991,7 +996,7 @@ var oneLineComment = (line) => {
     js_transpiled.push(`//${line.replace(/([#])+/, '')}`);
 };
 
-var comment = () => {
+var comment = (line) => {
     js_transpiled.push(is_comment ? '*/' : '/**');
     is_comment = !is_comment;
 };
@@ -1002,14 +1007,19 @@ var bruteline = (line) => {
 };
 
 var openClass = (line) => { 
-    if (current_class && !current_class.opened) {
-        js_transpiled.push(current_class.open(n_line));
-        return current_class.name;
+    try {
+        if (current_class && !current_class.opened) {
+            js_transpiled.push(current_class.open(n_line));
+            return current_class.name;
+        }
+        class_name = line.match(/(class (\w*))/i)[2];
+        var _class = blockFactory('class', class_name, null);
+        block_stack.push(_class);
+        return class_name;
+    } catch (e) {
+        print({line, is_comment});
+        throw e;
     }
-    class_name = line.match(/(class (\w*))/i)[2];
-    var _class = blockFactory('class', class_name, null);
-    block_stack.push(_class);
-    return class_name;
 };
 
 var openBlock = (line, block_type) => {
