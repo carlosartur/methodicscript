@@ -179,7 +179,7 @@ finally:
     echo('finally')
 ```
 
-6. Functions outside classes
+6. Functions outside classes -  returns null if doesn't have a "return" statement
 ```coffeescript
 function test(firstProp, secondProp = 1):
     return firstProp * secondProp
