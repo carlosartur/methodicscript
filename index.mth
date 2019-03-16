@@ -211,13 +211,16 @@ for index in dict as val:
     echo(`${val} is position ${index} in dict`)
 
 #while
-while cond:
-    echo('oi')
-
-#do while
+index = 0
+while index < 100:
+    echo('Hello while')
+    index++
+    
+#do-while equivalent
 repeat:
-    echo('oi')
-while cond:
+    echo('Hello')
+    index--
+while index > 0:
 
 #functions fora das classes, se não tiver return, retornará null
 function test(firstProp, secondProp = 1):

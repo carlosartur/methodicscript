@@ -386,14 +386,17 @@ for (var index in dict) {
     echo(`${val} is position ${index} in dict`)
     //while
 } //foreach
-while (cond) {
-    echo('oi')
-    //do while
+index = 0
+while (index < 100) {
+    echo('Hello while')
+    index++
+    //do-while equivalent
 } //while
 do {
-    echo('oi')
+    echo('Hello')
+    index--
 
-} while (cond);
+} while (index > 0);
 //functions fora das classes, se não tiver return, retornará null
 
 function test(firstProp, secondProp) {
