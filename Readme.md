@@ -178,3 +178,9 @@ catch exp:
 finally:
     echo('finally')
 ```
+
+6. Functions outside classes
+```coffeescript
+function test(firstProp, secondProp = 1):
+    return firstProp * secondProp
+```
