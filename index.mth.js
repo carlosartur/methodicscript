@@ -3,11 +3,11 @@
  */
 //comentários de linhas simples
 class Colour extends Object { //public
-    printColour() {
-        return this.__printColour.apply(this, arguments);
+    echoColour() {
+        return this.__echoColour.apply(this, arguments);
     }
-    __printColour() {
-        print(this.__colour)
+    __echoColour() {
+        echo(this.__colour)
         return this;
     } // method //method
 
@@ -53,7 +53,7 @@ class Shape extends Object {
      */
 
     /**
-     *Prints area
+     *echos area
      */
     get area() {
         return this.__area;
@@ -61,11 +61,11 @@ class Shape extends Object {
     set area(val) {
         this.__area = val;
     }
-    printArea() {
-        return this.__printArea.apply(this, arguments);
+    echoArea() {
+        return this.__echoArea.apply(this, arguments);
     }
-    __printArea() {
-        print(this.__area)
+    __echoArea() {
+        echo(this.__area)
         return this;
     } // method //method
 
@@ -82,6 +82,7 @@ class Shape extends Object {
     }
 } //class  //class Shape
 class Circle extends Shape {
+    //traits Colour
     //public
 
     get area() {
@@ -109,8 +110,10 @@ class Circle extends Shape {
         this.__area = null;
         this.__radius = 0;
     }
-} //class  //class Circle
+} //class 
+trait(Circle, Colour) //class Circle
 class Rectangle extends Shape {
+    //traits Colour
     //public
     constructor(width, height) {
         super();
@@ -149,8 +152,10 @@ class Rectangle extends Shape {
         this.__width = 0;
         this.__height = 0;
     }
-} //class  //class Rectangle
+} //class 
+trait(Rectangle, Colour) //class Rectangle
 class Square extends Rectangle {
+    //traits Colour
     //public
     constructor(side) {
         super();
@@ -159,7 +164,8 @@ class Square extends Rectangle {
     }
 
     __set_defaults() {}
-} //class  //class Square
+} //class 
+trait(Square, Colour) //class Square
 //abstract
 class Living extends Object {
     constructor() {
@@ -179,7 +185,7 @@ class Kinds extends Object {
         return this.__helloWorld.apply(this, arguments);
     }
     __helloWorld() {
-        print('Hello World')
+        echo('Hello World')
         return this;
     } // method //method
 
@@ -248,7 +254,7 @@ class Animal extends Living {
         return this.__bla.apply(this, arguments);
     }
     __bla() {
-        print(this.__name)
+        echo(this.__name)
         //valor padrão de parametro
         return this;
     } // method //method
@@ -258,8 +264,8 @@ class Animal extends Living {
     __blaWorldDefaultParams(worldILive) {
         worldILive = typeof worldILive !== 'undefined' ? worldILive : "Earth";
         //interpolação de strings, valores com ${valor} e métodos ou códigos com ${código}
-        print(`Hello, ${worldILive}, I am ${this.__name}`)
-        print(`${ 2 + 2 }`)
+        echo(`Hello, ${worldILive}, I am ${this.__name}`)
+        echo(`${ 2 + 2 }`)
         return true
         return this;
     } // method //methodwithdefaultparams
@@ -267,7 +273,7 @@ class Animal extends Living {
         return this.__blaWorld2.apply(this, arguments);
     }
     __blaWorld2(worldILive, worldYouLive) {
-        print(`Hello, ${worldILive}, I am ${this.__name}`)
+        echo(`Hello, ${worldILive}, I am ${this.__name}`)
         return true
         return this;
     } // method //method
@@ -293,7 +299,7 @@ class Animal extends Living {
         throw new Error('Trying to access a private method privateMethod.');
     }
     __privateMethod(worldILive, worldYouLive) {
-        print(`Hello, ${worldILive}, I am ${this.__name}`)
+        echo(`Hello, ${worldILive}, I am ${this.__name}`)
         return true
         return this;
     } // method //method
@@ -332,30 +338,30 @@ y =
     new Animal('Rex', 120, 'brown', 4, 150)
 //if e else
 if (1 == 2) {
-    print(1)
+    echo(1)
 } //if
 else if (100 > 200) {
-    print(2)
+    echo(2)
 } //elseif
 else if (!(1000 < 2000)) {
-    print(4)
+    echo(4)
 } //elseunless
 else {
-    print(3)
+    echo(3)
 } //else
 if (!(1 == 2)) {
-    print('oi')
+    echo('oi')
     //switch - não usar break, não é necessário.
 } //unless
 switch (value) {
     case 1:
-        print('is 1')
+        echo('is 1')
         break; //case
     case 2:
-        print('is 2')
+        echo('is 2')
         break; //case
     default:
-        print('is another')
+        echo('is another')
         /**
          *laços de repetição
          */
@@ -363,7 +369,7 @@ switch (value) {
         //default
 } //switch
 for (var index = 0; index <= 100; index += (2)) {
-    print(index)
+    echo(index)
     //foreach & arrays & dictionaries
 } //from
 list = [1, 2, 3, 4]
@@ -373,19 +379,19 @@ dict = {
 }
 for (var index in list) {
     var val = list[index]
-    print(`${val} is position ${index} in list`)
+    echo(`${val} is position ${index} in list`)
 } //foreach
 for (var index in dict) {
     var val = dict[index]
-    print(`${val} is position ${index} in dict`)
+    echo(`${val} is position ${index} in dict`)
     //while
 } //foreach
 while (cond) {
-    print('oi')
+    echo('oi')
     //do while
 } //while
 do {
-    print('oi')
+    echo('oi')
 
 } while (cond);
 //functions fora das classes, se não tiver return, retornará null
@@ -396,21 +402,21 @@ function test(firstProp, secondProp) {
     return null;
 } // function //functionwithdefaultparams
 try {
-    print('hello')
+    echo('hello')
 } catch (exp) {
     if (exp instanceof TypeError) {
-        print('TypeError')
+        echo('TypeError')
     } else
     if (exp instanceof ExampleExeption) {
-        print('ExampleExeption')
+        echo('ExampleExeption')
     } else {
-        print('Any other exeption')
+        echo('Any other exeption')
     }
 } finally {
-    print('finally')
+    echo('finally')
 }
 
-function print() {
+function echo() {
     switch (arguments.length) {
         case 0:
             console.log();

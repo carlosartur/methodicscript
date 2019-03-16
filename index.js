@@ -13,7 +13,7 @@ var fs = require('fs'),
         "long", "native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "super", 
         "switch", "synchronized", "this", "throw", "throws", "transient", "true", "try", "typeof", "var", "void", "volatile", 
         "while", "with"],
-    specialFunctionsUtilized = ['print'],
+    specialFunctionsUtilized = ['echo'],
     current_class = '',
     current_attr = null,
     inside_do = false,
@@ -238,7 +238,7 @@ var kinds_of_blocks = {
     }
 };
 
-var print = function () {
+var echo = function () {
     switch (arguments.length) {
         case 0:
             console.log();
@@ -264,7 +264,7 @@ var specialFunctions = {
             }
         }
     },
-    print : function print() {
+    echo : function echo() {
         switch (arguments.length) {
             case 0:
                 console.log();
@@ -940,7 +940,9 @@ var lineToLineTranspiller = (file) => {
         if (/^(traits )/.test(line)) {
             js_transpiled.push(`//${line}`);
             current_class.traits = line.replace(/^(traits )/g, '').split(',');
-            specialFunctionsUtilized.push('trait')
+            if(!specialFunctionsUtilized.includes('trait')) { 
+                specialFunctionsUtilized.push('trait') 
+            }
             continue;
         }
         
@@ -1016,9 +1018,8 @@ var openClass = (line) => {
         var _class = blockFactory('class', class_name, null);
         block_stack.push(_class);
         return class_name;
-    } catch (e) {
-        print({line, is_comment});
-        throw e;
+    } catch (exp) {
+        throw exp;
     }
 };
 
