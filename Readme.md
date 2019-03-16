@@ -29,7 +29,13 @@ Multi-line comment
     f. Class, const, attr and methods names must have more than 3 chars. Constants must have it's name written in ALL_UPPERCASE_SNAKECASE, classes with UpperCaseLeadingCamelCase, attrs with all_lowercase_snakecase and methods with lowerCaseLeadingCamelCase.
     
     g. Public and private methods outside getters and setters, return object instance ("return this") by default.
-    Static methods returns null by defult. There's no "return void" methods. A method always returns something, even null. 
+    Static methods returns null by defult. There's no "return void" methods. A method always returns something, even null.
+
+    h. Traits is a way of importing methods from another classes, emulating multiple inheritance. Constructors are never imported from traits, neither already existing methods and attributes.
+
+    g. Interfaces do not yet exist. Can or not be implemented in future versions.
+
+
 ```coffeescript
 class Colour:
     public:
