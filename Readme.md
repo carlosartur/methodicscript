@@ -33,7 +33,7 @@ Multi-line comment
 
     h. Traits is a way of importing methods from another classes, emulating multiple inheritance. Constructors are never imported from traits, neither already existing methods and attributes.
 
-    g. Interfaces do not yet exist. Can or not be implemented in future versions.
+    i. Interfaces do not yet exist. Can or not be implemented in future versions.
 
 
 ```coffeescript
