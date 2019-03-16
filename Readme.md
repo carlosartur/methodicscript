@@ -2,10 +2,10 @@
 
 A language that transpiles to JS. It's goal is make JS OO code more easy to do and to organize.
 
-# Inspiration
+## Inspiration
 It's based on Typescript, Coffescript, JavaScript(version ECMASCRIPT 6), Python, Ruby and PHP. My goal doing this transpiler is study REGEX, how transpillers work, and JS to node.js, and make a more simplier way of doing class-oriented code best pratices to run inside node.js or browsers. 
 
-# Examples
+## Examples
 1. Comments
 ```coffeescript
 #one-line comment
@@ -15,12 +15,19 @@ Multi-line comment
 ###
 ```
 2. Classes, attributes, methods and visibilities.
+
     a. Classes can be abstract
+    
     b. Methods are defined with the keyword "method"
+    
     c. Attributes are defined with the keyword "attr"
+    
     d. Attributes are a code block, and it's getters and setters must be inside it.
+    
     e. You can make methods as getters and setters outside attr code block, but you must to name it properly by yourself.
+    
     f. Class, const, attr and methods names must have more than 3 chars. Constants must have it's name written in ALL_UPPERCASE_SNAKECASE, classes with UpperCaseLeadingCamelCase, attrs with all_lowercase_snakecase and methods with lowerCaseLeadingCamelCase.
+    
     g. Public and private methods outside getters and setters, return object instance ("return this") by default.
     Static methods returns null by defult. There's no "return void" methods. A method always returns something, even null. 
 ```coffeescript
