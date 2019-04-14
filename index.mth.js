@@ -11,38 +11,56 @@ class Colour extends Object { //public
         return this;
     } // method //method
 
-    //static
-    static get DEFAULT_COLOUR() {
-        return "#FFF"
-    }
-    static set DEFAULT_COLOUR(value) {
-        throw new Error("DEFAULT_COLOUR is a class constant, and can't have his value changed to " + value)
-    }
-    //const
-    static getDefaultColour() {
-        return Colour.DEFAULT_COLOUR
-        return null
-    } //method
+    "_if": `if(`,
+    "_unless": `if(!(`,
+    "_elseif": `else if(`,
+    "_else": `else {`,
+    "_elseunless": `else if(!(`,
+    "_switch": `switch (`,
+    "_case": `case `,
+    default:
+    //default
+}
+get open_start_list() {
+    return this.__open_start_list;
+}
+set open_start_list(val) {
+    this.__open_start_list = val;
+}
 
-    //private
+//static
+static get DEFAULT_COLOUR() {
+    return "#FFF"
+}
+static set DEFAULT_COLOUR(value) {
+    throw new Error("DEFAULT_COLOUR is a class constant, and can't have his value changed to " + value)
+}
+//const
+static getDefaultColour() {
+    return Colour.DEFAULT_COLOUR
+    return null
+} //method
 
-    /**
-     *Shape class, parent abstract class
-     */
-    get colour() {
-        throw new Error("colour is a private attribute, it's value can't be get outside it's class")
-    }
-    set colour(val) {
-        throw new Error("colour is a private attribute, it's value can't be changed outside it's class")
-    }
+//private
 
-    constructor() {
-        super();
-        this.__set_defaults();
+/**
+ *Shape class, parent abstract class
+ */
+get colour() {
+    throw new Error("colour is a private attribute, it's value can't be get outside it's class")
+}
+set colour(val) {
+    throw new Error("colour is a private attribute, it's value can't be changed outside it's class")
+}
 
-    }
-    __set_defaults() {
-        this.__colour = null;
+constructor() {
+    super();
+    this.__set_defaults();
+
+}
+__set_defaults() {
+    this.__open_start_list = {
+        ;this.__colour = null;
     }
 } //class  //class Colour
 //abstract

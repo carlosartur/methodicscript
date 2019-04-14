@@ -1,0 +1,105 @@
+use Blocks/Block
+
+class ConditionalsBlock:
+    extends Block
+    public:
+        method constructor(type, name, params):
+            this.configureBlockProps(type, params)
+   
+        method open:
+            return `${this.open_start}${this.params}${this.open_finish}`;
+
+    private:
+        ###
+        @attr open_start_if
+        ###
+        attr open_start_if = `if(`
+        
+        ###
+        @attr open_start_unless
+        ###
+        attr open_start_unless = `if(!(`
+        
+        ###
+        @attr open_start_elseif
+        ###
+        attr open_start_elseif = `else if(`
+        
+        ###
+        @attr open_start_else
+        ###
+        attr open_start_else = `else {`
+        
+        ###
+        @attr open_start_elseunless
+        ###
+        attr open_start_elseunless = `else if(!(`
+        
+        ###
+        @attr open_start_switch
+        ###
+        attr open_start_switch = `switch (`
+        
+        ###
+        @attr open_start_case
+        ###
+        attr open_start_case = `case `
+        
+        ###
+        @attr open_start_default
+        ###
+        attr open_start_default = `default:`
+
+        ###
+        @attr open_finish_if
+        ###
+        attr open_finish_if = `) {`
+
+        ###
+        @attr open_finish_unless
+        ###
+        attr open_finish_unless = `)) {`
+
+        ###
+        @attr open_finish_elseif
+        ###
+        attr open_finish_elseif = `) {`
+
+        ###
+        @attr open_finish_else
+        ###
+        attr open_finish_else = ``
+
+        ###
+        @attr open_finish_elseunless
+        ###
+        attr open_finish_elseunless = `)) {`
+
+        ###
+        @attr open_finish_switch
+        ###
+        attr open_finish_switch = `) {`
+
+        ###
+        @attr open_finish_case
+        ###
+        attr open_finish_case = `:`
+
+        ###
+        @attr open_finish_default
+        ###
+        attr open_finish_default: ''
+        
+        ###
+        @attr open_start
+        ###
+        attr open_start:
+            get: method
+                this[`open_start_${this.type}`]
+        
+        ###
+        @attr open_finish
+        ###
+        attr open_finish:
+            get: method
+                this[`open_finish_${this.type}`]

@@ -1,0 +1,20 @@
+use Blocks/Block
+
+class GetterNSetterBlock:
+    extends Block
+    public:
+        method constructor(type, params):
+            this.configureBlockProps(type, params)
+            if type == "set":
+                current_attr.setter = false
+
+            if type == "get"
+                current_attr.getter = false
+
+
+        ###
+        Opens a CONST block
+        @returns string
+        ###
+        method open:
+            return `${current_visibility == 'static' ? 'static' : ''} ${this.type} ${current_attr.name} (${this.params}) {`

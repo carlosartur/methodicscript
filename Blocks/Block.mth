@@ -1,0 +1,130 @@
+###
+Class Block
+###
+class Block:
+    abstract
+    static:
+        const CONSTRUCTOR_METHOD_NAME = 'constructor'
+        const CLASS_BLOCK_TYPE_NAME = 'class'
+    public:
+        ###
+        @method configureBlockProps 
+        @returns this
+        ###
+        method configureBlockProps(type, params = ''):
+            this.type = type
+            this.block_props = kinds_of_blocks.hasOwnProperty(`_${this.type}`) ? kinds_of_blocks[`_${this.type}`] : kinds_of_blocks['_defaults']
+            this.can_be_child = this.block_props.hasOwnProperty('can_be_child') ? block_props.can_be_child : kinds_of_blocks['_defaults']['can_be_child']
+            this.must_be_child = this.block_props.hasOwnProperty('must_be_child') ? block_props.must_be_child : kinds_of_blocks['_defaults']['must_be_child']
+            this.can_be_inside = this.block_props.hasOwnProperty('can_be_inside') ? block_props.can_be_inside : kinds_of_blocks['_defaults']['can_be_inside']
+            this.close_code = this.block_props.hasOwnProperty('close') ? block_props.close : kinds_of_blocks['_defaults']['close']
+            if this.type == 'method' && current_visibility == 'static':
+                this.close_code = "return null }"
+            this.has_params = this.block_props.hasOwnProperty('has_params') ? block_props.has_params : kinds_of_blocks['_defaults']['has_params']
+            this.params = this.has_params && params ? this.setParams(params) : ''
+
+        ###
+        @method close returns string
+        ###
+        method close:
+            if this.name == Block.CONSTRUCTOR_METHOD_NAME:
+                return '}'
+            return `${this._close} //${this.type}`
+        
+        ###
+        @method open
+        @param {numeric} number_line
+        @param {string} line
+        ###
+        method open (number_line, line):
+            throw new SyntaxError(`Block ${this.type} doesn't exist. On line ${parseInt(number_line) + 1}`);
+
+        ###
+        @method verifyCorrectPlace
+        ###
+        method verifyCorrectPlace(number_line):
+            var fatherBlock = blockStack[blockStack.length - 2];
+            if fatherBlock && fatherBlock.name && this.type == "class" && fatherBlock.name == this.name:
+                return true
+            if !this.can_be_child && fatherBlock:
+                throw new SyntaxError(`${this.type} can't be inside of ${fatherBlock.type}. On line ${parseInt(n_line) + 1}`)
+            if this.must_be_child:
+                var must_be_inside_of = this.can_be_inside.length > 1 ? `one of this: ${this.can_be_inside.join()}` : `of ${this.can_be_inside[0]}`
+                if !fatherBlock:
+                    throw new SyntaxError(`${this.type} can't be alone, it must be inside ${must_be_inside_of}. On line ${parseInt(n_line) + 1}`)
+                if this.can_be_inside.indexOf(fatherBlock.type) == -1:
+                    throw new SyntaxError(`${this.type} can't be inside ${fatherBlock.type}, it must be inside ${must_be_inside_of}. On line ${parseInt(n_line) + 1}`)
+        ###
+        @method isClass
+        @retuns boolean
+        ###
+        method isClass:
+            return this.type === Block.CLASS_BLOCK_TYPE_NAME
+
+        ###
+        Returns if is a valid codeblock name
+        ###
+        method validName(name, regex, regexName):
+            var error_name = `Bad programming pratice error on line ${n_line * 1 + 1}.`
+            var regexNameOf = {
+                _const: {
+                    _retex: /^[A-Z_]+((\d)|([A-Z0-9]+))*$/,
+                    _name: 'SNAKE_CASE_ALL_UPERCASE.'
+                }
+            }
+            if name == undefined:
+                throw new SyntaxError(`${error_name} Names can't be undefined. Please fix it before trying compile again.`);            
+            
+            if name.length < 3:
+                throw new SyntaxError(`${error_name} Names can't have less than 3 chars. Please fix it before trying compile again.`);
+            
+            if js_reserved_words.indexOf(name) != -1 || methodic_reserved_words.indexOf(name) != -1:
+                throw new SyntaxError(`${error_name} Invalid name, ${name} is a reserved JS or MTHS word. Please fix it before trying compile again.`);
+
+            unless name.match(regex):
+                throw new SyntaxError(`${error_name} ${this.type} must have name written on ${regexName}`);
+
+            return name;
+
+        ###
+        @param String params
+        ###
+        method setParams(params):
+            return params.replaceAll(',', ', ');
+
+    private:
+        ###
+        @attr string
+        ###
+        attr type
+
+        ###
+        @attr string
+        ###
+        attr block_props
+
+        ###
+        @attr boolean
+        ###
+        attr can_be_child
+
+        ###
+        @attr boolean
+        ###
+        attr must_be_child
+
+        ###
+        @attr array
+        ###
+        attr can_be_inside
+
+        ###
+        @attr string
+        ###
+        attr close_code
+
+        ###
+        @attr string
+        ###
+        attr has_params
+        

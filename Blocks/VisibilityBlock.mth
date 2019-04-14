@@ -1,0 +1,19 @@
+use Blocks/Block
+
+class VisibilityBlock:
+    extends Block
+    public:
+        method constructor(type):
+            this.configureBlockProps(type)
+            current_visibility = type
+        
+        method open:
+            var ret = ''
+            unless current_class.opened:
+                ret += current_class.open()
+            current_visibility = this.type
+            return `${ret} //${this.type}`
+        
+        method close:
+            current_visibility = false
+            super.close()

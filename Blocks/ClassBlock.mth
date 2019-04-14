@@ -1,0 +1,129 @@
+use Blocks/Block
+
+class ClassBlock:
+    extends Block
+    public:
+        method constructor(name, params):
+            this.configureBlockProps(Block.CLASS_BLOCK_TYPE_NAME, params)
+            this.name = this.validName(name, /^(([A-Z])(\d)|([A-Z][a-z0-9]+))*([A-Z])?$/, 'CamelCase with leading uppercase.')
+            current_class = this
+            classes[class_name] = this
+
+        ###
+        Closes class, with traits and setDefaults
+        @returns string
+        ###        
+        method close:
+            var ret = '';
+            var traits_code = '';
+            ret += this.constructor_method;
+            
+            if this.traits.length:
+                traits_code += `trait(${this.name}, ${this.traits.join(',')});`
+            
+            ret += this.defaultsMethod
+
+            current_visibility = '';
+            return `${ret} ${this._close} ${traits_code} //${this.type} ${this.name}`;
+        
+        ###
+        Opens class, verifying if it extends something, traits something
+        @param numeric number_line default -1
+        @param string line default ''
+        @returns string
+        ###
+        method open(number_line = -1, line = ''):
+            try:
+                unless this.opened:
+                    this.verifyCorrectPlace(number_line)
+            catch exception:
+                throw exception
+            
+            this.opened = true
+            return `class ${this.name} extends ${this.parent} {`
+
+        ###
+        Add class attrs to class
+        @param string name
+        @param any val
+        ###
+        method addDefault(name, val):
+            this.defaults[name] = val
+
+    private:
+        ###
+        @attr attrs
+        ###
+        attr attrs = []
+        
+        ###
+        @attr methods
+        ###
+        attr methods = []
+        
+        ###
+        @attr parent
+        ###
+        attr parent = 'Object'
+        ###
+        @attr opened
+        ###
+        attr opened = false
+        
+        ###
+        @attr traits
+        ###
+        attr traits = []
+        
+        ###
+        @attr defaults
+        ###
+        attr defaults = {}
+        
+        ###
+        @attr abstract
+        ###
+        attr abstract = false
+        
+        ###
+        @attr defaultsMethod
+        ###
+        attr defaults_method:
+            get: method
+                ret += "__set_defaults(){"
+                for index in this.defaults as default:
+                    ret += `this.__${index} = ${default};`
+                ret += "}"
+                return ret
+
+        ###
+        @attr constructor_method
+        ###
+        attr constructor_method = false:
+            get: method
+                unless this.isClass():
+                    return false
+                unless this.constructor_method:
+                    this.buildConstructor()
+                return this.constructor_method
+        
+        ###
+        @method buildConstructor
+        @param string block default ''
+        ###
+        method buildConstructor(block = ''):
+            unless this.isClass():
+                return false
+            if block:
+                this.constructor = block
+                return this.constructor
+            for index in this.attrs as val:
+                block += `this.${val} typeof ${val} == 'undefined' ? null : ${val};`
+            if this.abstract:
+                block += `if (new.target === ${this.name}) {throw new TypeError("Cannot construct Abstract instances directly");}`
+            this.constructor_method = `constructor(${this.attrs.join(', ')}) {
+                super();
+                this.__set_defaults();
+                ${block}
+            }`;
+            this.methods.unshift(this.constructor_method);

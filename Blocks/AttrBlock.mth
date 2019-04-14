@@ -1,0 +1,33 @@
+use Blocks/Block
+
+class AttrBlock:
+    extends Block
+    public:
+        method constructor(type, name, params):
+            this.configureBlockProps(type, params)
+            switch current_visibility:
+                case 'public':
+                    this.setter = `set ${this.name}(val) { this.__${this.name} = val; }`
+                    this.getter = `get ${this.name}() { return this.__${this.name}; }`
+                case 'private':
+                    this.setter = `set ${this.name}(val) { throw new Error("${this.name} is a private attribute, it's value can't be changed outside it's class") }`;
+                    this.getter = `get ${this.name}() { throw new Error("${this.name} is a private attribute, it's value can't be get outside it's class") }`;
+                case 'static':
+                    this.setter = `static set ${this.name}(val) { ${current_class.name}.__${this.name} = val; }`;
+                    this.getter = `static get ${this.name}() { return ${current_class.name}.__${this.name}; }`;
+            
+            params = params.replace(/:$/, '')
+            current_class.setDefault(this.name, (params ? params : "null"))
+            current_attr = this
+
+        method open:
+            return ''
+
+        method close:
+            var ret = '';
+            if this.getter
+                ret += this.getter
+
+            if this.setter
+                ret += this.setter
+            return ret

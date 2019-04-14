@@ -1,0 +1,138 @@
+use Blocks/Block
+
+class LoopBlock:
+    extends Block
+    public:
+        method constructor(type, name, params):
+            this.configureBlockProps(type, params)
+            if this.type == "repeat"
+                inside_do = true
+        
+        method open:
+            return this[`open_${this.type}`]
+        
+        method close:
+            if this.type == "repeat" || this.is_closing_of_repeat:
+                return ''
+            return super.close()
+
+    private:
+        ###
+        @attr boolean is_closing_of_repeat
+        ###
+        attr is_closing_of_repeat = false
+
+        ###
+        @attr open_repeat
+        ###
+        attr open_repeat = "do {"
+
+        ###
+        @attr open_while
+        ###
+        attr open_while:
+            get: method
+                var str_return = `${inside_do ? '}' : ''} while(${this.params}) ${inside_do ? ';' : '{'}`
+                this.is_closing_of_repeat = inside_do
+                inside_do = !inside_do
+                return str_return
+
+        ###
+        @attr open_foreach
+        ###
+        attr open_foreach:
+            get: method
+                return `for (var ${this.indexVar} in ${this.interatorVar}) { var ${this.aliasVar} = ${this.interatorVar}[${this.indexVar}]`
+
+        ###
+        @attr open_from
+        ###
+        attr open_from:
+            get: method
+                var operator = this.step < 0 ? ">=" : "<="
+                return `for (var ${this.from}; ${this.indexVar} ${operator} ${this.to}; ${this.indexVar} += (${this.step}) ) {`
+
+        ###
+        @attr to
+        ###
+        attr to:
+            get: method
+                unless this.to:
+                    this.to = this.params
+                        .match(/(to (.){1,}(step))/)
+                        .shift()
+                        .replace('to', '')
+                        .replace('step', '')
+                return this.to
+        
+        ###
+        @attr from
+        ###
+        attr from:
+            get: method
+                unless this.from:
+                    this.from = this.params
+                        .match(/(.{1,}\d{1,} (to))/)
+                        .shift()
+                        .replace(' to', '')
+                        .replace('from ', '')
+                return this.from
+
+        ###
+        @attr index_var
+        ###
+        attr index_var:
+            get: method
+                unless this.index_var:
+                    if this.type == 'from':
+                        this.index_var = this.params
+                            .match(/( \w{3,})/)
+                            .shift()
+                            .replace('from ', '')
+                    elseif this.type == 'foreach':
+                        this.index_var = this.params
+                            .match(/((.)*(in))/)
+                            .shift()
+                            .replace('in ', '')
+                            .trim()
+                            .split(' ')[0]
+                    else:
+                        throw new SyntaxError(`Loop type detection error. Type ${this.type}. In line ${n_line}`)
+                return this.index_var
+       
+        ###
+        @attr interator_var
+        ###
+        attr interator_var:
+            get: method
+                unless this.interator_var:
+                    this.interator_var = this.params
+                        .match(/(in (.)*(as))/)
+                        .shift()
+                        .replace(' as', '')
+                        .replace('in ', '')
+                return this.interator_var
+
+        ###
+        @attr interator_var
+        ###
+        attr alias_var:
+            get: method
+                unless this.alias_var:
+                    this.alias_var = this.params
+                        .match(/(as (.)*)/)
+                        .shift()
+                        .replace('as ', '')
+                return this.alias_var
+        
+        ###
+        @attr interator_var
+        ###
+        attr step:
+            get: method
+                unless this.step:
+                    this.step = this.params
+                        .match(/((step)\s{1,}-?\d{1,})/)
+                        .shift()
+                        .replace('step ', '')
+                return this.step

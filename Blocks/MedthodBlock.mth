@@ -1,0 +1,97 @@
+use Blocks/Block
+
+class MethodBlock:
+    extends Block
+    public:
+        method constructor(type, name, params):
+            this.configureBlockProps(type, params)
+            this.name = this.validName(name, /^[a-z]+((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?$/, 'camelCase with leading lowercase.');
+            this.is_function = this.type.indexOf('function') != -1;
+     
+        ###
+        Opens method block
+        @param numeric number_line
+        @returns string
+        ### 
+        open(number_line):
+            this.verifyCorrectPlace(number_line)
+            var ret = ''
+            unless current_class.opened:
+                ret += current_class.open()
+            
+            if this.name == 'constructor':
+                return this.openConstructor(ret)
+            
+            switch current_visibility:
+                case "public":
+                    var getter = `${this.name}() { return this.__${this.name}.apply(this, arguments); }`;
+                case "private":
+                    var getter = `${this.name}() { throw new Error('Trying to access a private method ${this.name}.'); }`;
+                case "static":
+                    return `${ret} static ${this.name}(${this.params}) {`;
+
+            let default_params_lines = this.defaultValuesParams()
+            if this.is_function:
+                return `function ${this.name}(${this.params}) { ${default_params_lines}`
+            
+            return `${ret} ${getter}
+                    ${current_visibility == "static" ? "static" : ''} __${this.name}(${this.params}) { ${default_params_lines}`   
+
+    private:
+        ###
+        @attr has_default_params
+        ###
+        attr has_default_params = false
+
+        ###
+        @attr has_default_params
+        ###
+        attr is_function
+        
+        ###
+        @attr has_default_params
+        ###
+        attr has_default_params = false
+
+        ###
+        Set has default params as true
+        @method hasDefaultParams
+        ###
+        method hasDefaultParams:
+            this.has_default_params = true
+
+        ###
+        Opens a constructor method
+        @param string ret
+        ###
+        method openConstructor(ret):
+            if current_class.abstract:
+                throw new Error(`A abstract class can't have a constructor method. On line ${number_line}`)
+            current_class._constructor = true
+            return `${ret} constructor(${this.params}) { super(); this.__set_defaults();`
+        
+        ###
+        Set defaults params values
+        @returns string
+        ###
+        method defaultValuesParams:
+            unless this.has_default_params:
+                return ''
+
+            let splited_params = this.params.split(',').map(function(item) {
+                let attr_n_value = item.split('=');
+                return {
+                    attr : attr_n_value[0].trim(), 
+                    value: attr_n_value.length > 1 ? attr_n_value[1].trim() : null
+                };
+            })
+            
+            let str_return = '', params_names = []
+            for index in this.defaults as splited_params_item:
+                params_names.push(splited_params_item.attr)
+                unless splited_params_item.value:
+                    continue
+                str_return += `${splited_params_item.attr} = typeof ${splited_params_item.attr} !== 'undefined' ? ${splited_params_item.attr} : ${splited_params_item.value};`
+            
+            this.params = params_names.join(', ')
+            return str_return

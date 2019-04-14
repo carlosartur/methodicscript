@@ -19,7 +19,9 @@ var fs = require('fs'),
     inside_do = false,
     current_error_handling = false,
     is_string_regex = /(["'`])(?:(?=(\\?))\2.)*?\1/g,
-    n_line;
+    n_line,
+    files = [],
+    files_already_read = [];
 String.prototype.replaceAll = function(search, replacement) {
     replacement = typeof replacement == "undefined" ? '' : replacement;
     var target = this;
@@ -453,7 +455,7 @@ class _class extends Block {
         this.defaults = {};
         this.abstract = false;
         current_class = this;
-        classes[class_name] = _class;
+        classes[class_name] = this;
     }
 
     close() {
@@ -892,7 +894,17 @@ fs.readFile('index.mth', 'UTF-8', (err, contents) => {
     lineToLineTranspiller(file);
 });
 
-var lineToLineTranspiller = (file) => {
+var lineToLineTranspiller = (file, path, is_index) => {
+    path = typeof path == 'undefined' ? false : path;
+    is_index = typeof is_index == 'undefined' ? true : is_index;
+
+    if (path) {
+        fs.readFile(path, 'UTF-8', (err, contents) => {
+            file = contents.split('\n');
+            lineToLineTranspiller(file, false, false);
+        })
+        return;
+    }
     for (n_line in file) {
         let line = file[n_line];
         let line_spaces = line.search(/\S/);
@@ -906,7 +918,12 @@ var lineToLineTranspiller = (file) => {
         if (line.length === 0) {
             continue;
         }
-
+        
+        if (/^(use\s)/.test(line)) {
+            files.push(line.replace(/^(use\s)/, '') + '.mth');
+            continue;
+        }
+        
         //line is comment
         if (/^(#(?!#))+/g.test(line)) {
             oneLineComment(line);
@@ -970,15 +987,30 @@ var lineToLineTranspiller = (file) => {
         bruteline(line);
     }
     closeBlock(0);
+    for (var index in files) {
+        file_path = files[index];
+        if (files_already_read.includes(file_path)) {
+            continue;
+        }
+        files_already_read.push(file_path);
+        lineToLineTranspiller(null, file_path);
+    }
+    console.log({path, is_index});
     for (var index in specialFunctionsUtilized) {
         js_transpiled.push(specialFunctions[specialFunctionsUtilized[index]])
     }
     var final_compilled_js = beautify(js_transpiled.join('\n'), { indent_size: 4, space_in_empty_paren: true });
-    fs.writeFile('index.mth.js', final_compilled_js, function (err) {
-        if (err) throw err;
-        console.log('Saved!');
-    });
-
+    if (is_index) { 
+        fs.writeFile('index.mth.js', final_compilled_js, function (err) {
+            if (err) throw err;
+            console.log('Saved index!');
+        });
+    } else {
+        fs.appendFile('index.mth.js', final_compilled_js, function (err) {
+            if (err) throw err;
+            console.log('Saved!');
+        });
+    }
 };
 
 var closeBlock = (new_stack_size) => {

@@ -1,0 +1,16 @@
+use Blocks/Block
+
+class ConstBlock:
+    extends Block
+    public:
+        method constructor(type, name, params):
+            this.configureBlockProps(type, params)
+            this.name = this.validName(name, /^[A-Z_]+((\d)|([A-Z0-9]+))*$/, 'SNAKE_CASE_ALL_UPPERCASE.')
+
+        ###
+        Opens a CONST block
+        @returns string
+        ###
+        method open:
+            return `static get ${this.name} () {return ${this.params}} 
+                static set ${this.name} (value) {throw new Error("${this.name} is a class constant, and can't have his value changed to " + value)}`
