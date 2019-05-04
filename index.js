@@ -7,13 +7,15 @@ var fs = require('fs'),
     classes = {},
     spaces = [],
     methodic_reserved_words = ["method", "attr", "get", "set", "elseif", "is", "unless", "another", "from", "to", "step"],
-    js_reserved_words = ["abstract", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",,
-        "debugger", "default", "delete", "do", "double", "else", "enum", "export", "extends", "false", "final", "finally", 
-        "float", "for", "function", "goto", "if", "implements", "import", "in", "instanceof", "int", "interface", "let", 
-        "long", "native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "super", 
-        "switch", "synchronized", "this", "throw", "throws", "transient", "true", "try", "typeof", "var", "void", "volatile", 
-        "while", "with"],
+    js_reserved_words = ["abstract", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue", ,
+        "debugger", "default", "delete", "do", "double", "else", "enum", "export", "extends", "false", "final", "finally",
+        "float", "for", "function", "goto", "if", "implements", "import", "in", "instanceof", "int", "interface", "let",
+        "long", "native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "super",
+        "switch", "synchronized", "this", "throw", "throws", "transient", "true", "try", "typeof", "var", "void", "volatile",
+        "while", "with"
+    ],
     specialFunctionsUtilized = ['echo'],
+    specialFunctionAreadyUsed = [],
     current_class = '',
     current_attr = null,
     inside_do = false,
@@ -22,42 +24,42 @@ var fs = require('fs'),
     n_line,
     files = [],
     files_already_read = [];
-String.prototype.replaceAll = function(search, replacement) {
+String.prototype.replaceAll = function (search, replacement) {
     replacement = typeof replacement == "undefined" ? '' : replacement;
     var target = this;
     return target.split(search).join(replacement);
 };
 
 var openBlockRegex = {
-    _public:    /public:/,
-    _private:   /private:/,
-    _static:    /static:/,
-    _method:    /(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
+    _public: /public:/,
+    _private: /private:/,
+    _static: /static:/,
+    _method: /(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
     _methodwithdefaultparams: /(method[\s]{1,}[\w]+[\s]{0,}?(\(([\w][\s]{0,}(=(.){1,})?,?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
-    _function:  /(function[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
+    _function: /(function[\s]{1,}[\w]+[\s]{0,}?(\(([\w],?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
     _functionwithdefaultparams: /(function[\s]{1,}[\w]+[\s]{0,}?(\(([\w][\s]{0,}(=(.){1,})?,?[\s]{0,}){0,}\)){0,}[\s]{0,}:)+/,
-    _extends:   /^(extends )/,
-    _const:     /(const [A-Z]{1,})/,
-    _attr:      /(attr[\s]{1,}[\w]+[\s]{0,}?:?)+/,
-    _set:       /(set)(\s){0,}?(:)/,
-    _get:       /(get)(\s){0,}?(:)/,
-    _elseunless:/(elseunless\s.{1,}:)/,
-    _unless:    /(unless\s.{1,}:)/,
-    _elseif:    /(elseif\s.{1,}:)/,
-    _else:      /(else:)/,
-    _if:        /(if\s.{1,}:)/,
-    _switch:    /(switch\s.{1,}:)/,
-    _case:      /(case\s.{1,}:)/,
-    _default:   /(default:)/,
-    _from:      /^(from).{1,}(step (-*)\d{1,}:)$/,
-    _foreach:   /^(for).*(as \w*:)$/,
-    _while:     /(while\s.{1,}:)/,
-    _repeat:    /(repeat:)/,
-    _try:       /(try:)/,
-    _catch:     /(catch\s.{1,}:)/,
-    _is:        /(is\s.{1,}:)/,
-    _finally:   /(finally:)/,
-    _another:   /(another:)/,
+    _extends: /^(extends )/,
+    _const: /(const [A-Z]{1,})/,
+    _attr: /(attr[\s]{1,}[\w]+[\s]{0,}?:?)+/,
+    _set: /(set)(\s){0,}?(:)/,
+    _get: /(get)(\s){0,}?(:)/,
+    _elseunless: /(elseunless\s.{1,}:)/,
+    _unless: /(unless\s.{1,}:)/,
+    _elseif: /(elseif\s.{1,}:)/,
+    _else: /(else:)/,
+    _if: /(if\s.{1,}:)/,
+    _switch: /(switch\s.{1,}:)/,
+    _case: /(case\s.{1,}:)/,
+    _default: /(default:)/,
+    _from: /^(from).{1,}(step (-*)\d{1,}:)$/,
+    _foreach: /^(for).*(as \w*:)$/,
+    _while: /(while\s.{1,}:)/,
+    _repeat: /(repeat:)/,
+    _try: /(try:)/,
+    _catch: /(catch\s.{1,}:)/,
+    _is: /(is\s.{1,}:)/,
+    _finally: /(finally:)/,
+    _another: /(another:)/,
 };
 
 var kinds_of_blocks = {
@@ -224,7 +226,7 @@ var kinds_of_blocks = {
         has_name: false,
         has_params: true,
         params_regex: /(?![is])(.{1,})(?<!:)/,
-        close : '} else ',
+        close: '} else ',
         must_be_child: true,
         can_be_inside: ['catch'],
     },
@@ -256,17 +258,17 @@ var echo = function () {
 }
 
 var specialFunctions = {
-    trait : function trait(_class, ..._traits) {
-        for(var _trait of _traits) {
+    trait: function trait(_class, ..._traits) {
+        for (var _trait of _traits) {
             for (var a of Object.getOwnPropertyNames(_trait.prototype)) {
-                 if (_class.prototype.hasOwnProperty(a)) {
+                if (_class.prototype.hasOwnProperty(a)) {
                     continue;
-                 }
-                 _class.prototype[a] = _trait.prototype[a];
+                }
+                _class.prototype[a] = _trait.prototype[a];
             }
         }
     },
-    echo : function echo() {
+    echo: function echo() {
         switch (arguments.length) {
             case 0:
                 console.log();
@@ -331,10 +333,10 @@ var blockFactory = (type, name, params) => {
 }
 
 class Block {
-    constructor (type, params) {
+    constructor(type, params) {
         this.type = type;
         this.attrs = [];
-        
+
         var block_props = kinds_of_blocks.hasOwnProperty(`_${this.type}`) ? kinds_of_blocks[`_${this.type}`] : kinds_of_blocks['_defaults'];
         this.setBlockProps(block_props);
         this.params = this.has_params ? (typeof params == 'undefined' ? '' : this.setParams(params)) : '';
@@ -354,7 +356,7 @@ class Block {
     /**
      * Close this block
      */
-    close () {
+    close() {
         if (this.name == 'constructor') {
             return '}';
         }
@@ -366,7 +368,7 @@ class Block {
      * @param {numeric} number_line 
      * @param {string} line 
      */
-    open (number_line, line) {
+    open(number_line, line) {
         number_line = typeof number_line == 'undefined' ? -1 : number_line;
         line = typeof line == 'undefined' ? '' : line;
         switch (this.type) {
@@ -401,20 +403,21 @@ class Block {
     /**
      * Returns if this block is a class block
      */
-    isClass () { 
+    isClass() {
         return false;
     }
-    
+
     /**
      * Returns if is a valid codeblock name
      * @param {string} name 
      */
-    validName (name, regex, regexName) {
-        var error_name = `Bad programming pratice error on line ${n_line * 1 + 1}.`;
+    validName(name, regex, regexName) {
+        var error_name = `Bad programming pratice error on line ${n_line * 1 + 1}. Class: ${current_class}`;
         if (name == undefined) {
-            throw new SyntaxError(`${error_name} Names can't be undefined. Please fix it before trying compile again.`);            
+            throw new SyntaxError(`${error_name} Names can't be undefined. Please fix it before trying compile again.`);
         }
         if (name.length < 3) {
+            console.log([name, regex, regexName]);
             throw new SyntaxError(`${error_name} Names can't have less than 3 chars. Please fix it before trying compile again.`);
         }
         if (js_reserved_words.indexOf(name) != -1 || methodic_reserved_words.indexOf(name) != -1) {
@@ -467,9 +470,6 @@ class _class extends Block {
         if (this.traits.length) {
             traits_code += `
             trait(${this.name}, ${this.traits.join(',')})`;
-            // this.traits.forEach(element => {
-            //     traits_code += `trait(${})`;
-            // });
         }
         ret += "__set_defaults(){";
         for (var i in this.defaults) {
@@ -480,15 +480,15 @@ class _class extends Block {
         return `${ret} ${this._close} ${traits_code} //${this.type} ${this.name}`;
     }
 
-    isClass () { 
+    isClass() {
         return true;
     }
 
-    open (number_line, line) {
+    open(number_line, line) {
         number_line = typeof number_line == 'undefined' ? -1 : number_line;
         line = typeof line == 'undefined' ? '' : line;
         try {
-            if(!this.opened) {
+            if (!this.opened) {
                 this.verifyCorrectPlace(number_line);
             }
         } catch (e) {
@@ -502,8 +502,8 @@ class _class extends Block {
      * Set constructor
      * @param {Block} block 
      */
-    setConstructor (block) {
-        block = typeof block == 'undefined' ? '' : block;        
+    setConstructor(block) {
+        block = typeof block == 'undefined' ? '' : block;
         if (!this.isClass()) {
             return false;
         }
@@ -531,8 +531,8 @@ class _class extends Block {
     /**
      * Get constructor
      */
-    getConstructor () {
-        if(!this._constructor) {
+    getConstructor() {
+        if (!this._constructor) {
             this.setConstructor();
         }
         return this._constructor;
@@ -544,10 +544,14 @@ class _class extends Block {
     setDefault(name, val) {
         this.defaults[name] = val;
     }
+
+    toString() {
+        return this.name;
+    }
 }
 
 class _method extends Block {
-    constructor (type, name, params) {
+    constructor(type, name, params) {
         super(type, params);
         this.name = this.validName(name, /^[a-z]+((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?$/, 'camelCase with leading lowercase.');
         this.has_default_params = false;
@@ -558,7 +562,7 @@ class _method extends Block {
         this.has_default_params = true;
     }
 
-    open (number_line) {
+    open(number_line) {
         this.verifyCorrectPlace(number_line);
         var ret = '';
         if (!current_class.opened) {
@@ -594,13 +598,13 @@ class _method extends Block {
     }
 
     defaultValuesParams() {
-        if(!this.has_default_params) {
+        if (!this.has_default_params) {
             return '';
         }
-        let splited_params = this.params.split(',').map(function(item) {
+        let splited_params = this.params.split(',').map(function (item) {
                 let attr_n_value = item.split('=');
                 return {
-                    attr : attr_n_value[0].trim(), 
+                    attr: attr_n_value[0].trim(),
                     value: attr_n_value.length > 1 ? attr_n_value[1].trim() : null
                 };
             }),
@@ -643,7 +647,7 @@ class _attr extends Block {
     constructor(type, name, params) {
         super(type, params);
         this.name = this.validName(name, /^[a-z_]+((\d)|([a-z0-9]+))*$/, 'snake_case_all_lowercase.');
-        switch(current_visibility) {
+        switch (current_visibility) {
             case 'public':
                 this.setter = `set ${this.name}(val) { this.__${this.name} = val; }`;
                 this.getter = `get ${this.name}() { return this.__${this.name}; }`;
@@ -706,22 +710,22 @@ class _conditionals extends Block {
     constructor(type, params) {
         super(type, params);
         this.openStartList = {
-            _if : `if(`,
-            _unless : `if(!(`,
-            _elseif : `else if(`,
-            _else : `else {`,
-            _elseunless : `else if(!(`,
+            _if: `if(`,
+            _unless: `if(!(`,
+            _elseif: `else if(`,
+            _else: `else {`,
+            _elseunless: `else if(!(`,
             _switch: `switch (`,
             _case: `case `,
             _default: `default:`,
         };
         this.openFinishList = {
-            _if : `) {`,
-            _unless : `)) {`,
-            _elseif : `) {`,
-            _else : ``,
-            _elseunless : `)) {`,
-            _switch : `) {`,
+            _if: `) {`,
+            _unless: `)) {`,
+            _elseif: `) {`,
+            _else: ``,
+            _elseunless: `)) {`,
+            _switch: `) {`,
             _case: `:`,
             _default: '',
         };
@@ -780,11 +784,11 @@ class _loop extends Block {
                 .shift()
                 .replace('to', '')
                 .replace('step', '');
-        
+
         }
         return this._to;
     }
-    
+
     get from() {
         if (!this._from) {
             this._from = this.params
@@ -795,7 +799,7 @@ class _loop extends Block {
         }
         return this._from;
     }
-    
+
     get indexVar() {
         if (!this._indexVar) {
             if (this.type == "from") {
@@ -817,7 +821,7 @@ class _loop extends Block {
         }
         return this._indexVar;
     }
-    
+
     get interatorVar() {
         if (!this._interator_var) {
             this._interator_var = this.params
@@ -900,6 +904,9 @@ var lineToLineTranspiller = (file, path, is_index) => {
 
     if (path) {
         fs.readFile(path, 'UTF-8', (err, contents) => {
+            if (!contents) {
+                return null;
+            }
             file = contents.split('\n');
             lineToLineTranspiller(file, false, false);
         })
@@ -913,23 +920,24 @@ var lineToLineTranspiller = (file, path, is_index) => {
         }
 
         line = line.trim();
-        
+
         //line is empty
         if (line.length === 0) {
             continue;
         }
-        
+
         if (/^(use\s)/.test(line)) {
-            files.push(line.replace(/^(use\s)/, '') + '.mth');
+            let path = line.replace(/^(use\s)/, '') + '.mth';
+            files.push(path);
             continue;
         }
-        
+
         //line is comment
         if (/^(#(?!#))+/g.test(line)) {
             oneLineComment(line);
             continue;
         }
-        
+
         if (/^(###)+/g.test(line)) {
             comment(line);
             continue;
@@ -942,8 +950,8 @@ var lineToLineTranspiller = (file, path, is_index) => {
         //blocks of code
         spaces.push(line_spaces / 4);
         closeBlock(line_spaces / 4);
-        
-        if (/(class[\s]{1,}[\w]+[\s]{0,}?:)+/.test(line)) {    
+
+        if (/(class[\s]{1,}[\w]+[\s]{0,}?:)+/.test(line)) {
             openClass(line);
             continue;
         }
@@ -957,13 +965,13 @@ var lineToLineTranspiller = (file, path, is_index) => {
         if (/^(traits )/.test(line)) {
             js_transpiled.push(`//${line}`);
             current_class.traits = line.replace(/^(traits )/g, '').split(',');
-            if(!specialFunctionsUtilized.includes('trait')) { 
-                specialFunctionsUtilized.push('trait') 
+            if (!specialFunctionsUtilized.includes('trait')) {
+                specialFunctionsUtilized.push('trait')
             }
             continue;
         }
-        
-        if (/abstract/.test(line)) {
+
+        if (/^(abstract)/.test(line)) {
             js_transpiled.push(`//${line}`);
             current_class.abstract = true;
             openClass(line);
@@ -995,12 +1003,19 @@ var lineToLineTranspiller = (file, path, is_index) => {
         files_already_read.push(file_path);
         lineToLineTranspiller(null, file_path);
     }
-    console.log({path, is_index});
     for (var index in specialFunctionsUtilized) {
-        js_transpiled.push(specialFunctions[specialFunctionsUtilized[index]])
+        if (specialFunctionAreadyUsed.includes(specialFunctionsUtilized[index])) {
+            continue;
+        }
+        js_transpiled.push(specialFunctions[specialFunctionsUtilized[index]]);
+        specialFunctionAreadyUsed.push(specialFunctionsUtilized[index]);
     }
-    var final_compilled_js = beautify(js_transpiled.join('\n'), { indent_size: 4, space_in_empty_paren: true });
-    if (is_index) { 
+
+    var final_compilled_js = beautify(js_transpiled.join('\n'), {
+        indent_size: 4,
+        space_in_empty_paren: true
+    }) + '\n';
+    if (is_index) {
         fs.writeFile('index.mth.js', final_compilled_js, function (err) {
             if (err) throw err;
             console.log('Saved index!');
@@ -1010,6 +1025,7 @@ var lineToLineTranspiller = (file, path, is_index) => {
             if (err) throw err;
             console.log('Saved!');
         });
+        js_transpiled = [];
     }
 };
 
@@ -1040,7 +1056,7 @@ var bruteline = (line) => {
     js_transpiled.push(line);
 };
 
-var openClass = (line) => { 
+var openClass = (line) => {
     try {
         if (current_class && !current_class.opened) {
             js_transpiled.push(current_class.open(n_line));
@@ -1051,13 +1067,14 @@ var openClass = (line) => {
         block_stack.push(_class);
         return class_name;
     } catch (exp) {
-        throw exp;
+        throw new Error(`${exp.constructor.name}: ${exp.message} In line: ${n_line}. Line:${line}`)
     }
 };
 
 var openBlock = (line, block_type) => {
     closeBlock(spaces[spaces.length - 1]);
-    var name = undefined, params = undefined;
+    var name = undefined,
+        params = undefined;
     if (kinds_of_blocks.hasOwnProperty(`_${block_type}`)) {
         kind_block = kinds_of_blocks[`_${block_type}`];
         var has_name = kind_block.hasOwnProperty('has_name') ? kind_block.has_name : kinds_of_blocks._defaults.has_name;

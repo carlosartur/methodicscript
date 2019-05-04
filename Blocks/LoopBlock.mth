@@ -49,34 +49,34 @@ class LoopBlock:
         ###
         attr open_from:
             get: method
-                var operator = this.step < 0 ? ">=" : "<="
-                return `for (var ${this.from}; ${this.indexVar} ${operator} ${this.to}; ${this.indexVar} += (${this.step}) ) {`
+                var operator = this.step_ < 0 ? ">=" : "<="
+                return `for (var ${this.from_}; ${this.indexVar} ${operator} ${this.to_}; ${this.indexVar} += (${this.step_}) ) {`
 
         ###
-        @attr to
+        @attr to_
         ###
-        attr to:
+        attr to_:
             get: method
-                unless this.to:
-                    this.to = this.params
+                unless this.to_:
+                    this.to_ = this.params
                         .match(/(to (.){1,}(step))/)
                         .shift()
                         .replace('to', '')
                         .replace('step', '')
-                return this.to
+                return this.to_
         
         ###
-        @attr from
+        @attr from_
         ###
-        attr from:
+        attr from_:
             get: method
-                unless this.from:
-                    this.from = this.params
+                unless this.from_:
+                    this.from_ = this.params
                         .match(/(.{1,}\d{1,} (to))/)
                         .shift()
                         .replace(' to', '')
                         .replace('from ', '')
-                return this.from
+                return this.from_
 
         ###
         @attr index_var
@@ -128,11 +128,11 @@ class LoopBlock:
         ###
         @attr interator_var
         ###
-        attr step:
+        attr step_:
             get: method
-                unless this.step:
-                    this.step = this.params
+                unless this.step_:
+                    this.step_ = this.params
                         .match(/((step)\s{1,}-?\d{1,})/)
                         .shift()
                         .replace('step ', '')
-                return this.step
+                return this.step_

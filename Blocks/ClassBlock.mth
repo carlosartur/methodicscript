@@ -81,20 +81,22 @@ class ClassBlock:
         attr defaults = {}
         
         ###
-        @attr abstract
+        @attr is_abstract
         ###
-        attr abstract = false
+        attr is_abstract = false
         
         ###
         @attr defaultsMethod
         ###
         attr defaults_method:
             get: method
-                ret += "__set_defaults(){"
-                for index in this.defaults as default:
-                    ret += `this.__${index} = ${default};`
-                ret += "}"
-                return ret
+                unless this.defaults_method:
+                    this.defaults_method = "__set_defaults(){"
+                    #for index in this.attrs as val:
+                    for index in this.defaults as def:
+                        this.defaults_method += `this.__${index} = ${def};`
+                    this.defaults_method += "}"
+                return this.defaults_method
 
         ###
         @attr constructor_method
@@ -119,7 +121,7 @@ class ClassBlock:
                 return this.constructor
             for index in this.attrs as val:
                 block += `this.${val} typeof ${val} == 'undefined' ? null : ${val};`
-            if this.abstract:
+            if this.is_abstract:
                 block += `if (new.target === ${this.name}) {throw new TypeError("Cannot construct Abstract instances directly");}`
             this.constructor_method = `constructor(${this.attrs.join(', ')}) {
                 super();

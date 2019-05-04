@@ -24,7 +24,7 @@ class AttrBlock:
             return ''
 
         method close:
-            var ret = '';
+            var ret = ''
             if this.getter
                 ret += this.getter
 

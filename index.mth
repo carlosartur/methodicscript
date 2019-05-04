@@ -1,1 +1,8 @@
-use Blocks/Block
+use Blocks/AttrBlock
+use Blocks/ClassBlock
+use Blocks/ConditionalsBlock
+use Blocks/ConstBlock
+use Blocks/GetterNSetterBlock
+use Blocks/LoopBlock
+use Blocks/MethodBlock
+use Blocks/VisibilityBlock

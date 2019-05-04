@@ -1,6 +1,6 @@
 use Blocks/Block
 
-class GetterNSetterBlock:
+class GetterAndSetterBlock:
     extends Block
     public:
         method constructor(type, params):
