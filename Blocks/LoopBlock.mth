@@ -3,14 +3,26 @@ use Blocks/Block
 class LoopBlock:
     extends Block
     public:
+        ###
+        @method constructor
+        @param string type
+        @param string name
+        @param string params
+        ###
         method constructor(type, name, params):
             this.configureBlockProps(type, params)
-            if this.type == "repeat"
+            if this.type == "repeat":
                 inside_do = true
         
+        ###
+        @method open
+        ###
         method open:
             return this[`open_${this.type}`]
         
+        ###
+        @method close
+        ###
         method close:
             if this.type == "repeat" || this.is_closing_of_repeat:
                 return ''

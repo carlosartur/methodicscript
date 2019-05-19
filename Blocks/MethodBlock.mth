@@ -13,7 +13,7 @@ class MethodBlock:
         @param numeric number_line
         @returns string
         ### 
-        open(number_line):
+        method open(number_line):
             this.verifyCorrectPlace(number_line)
             var ret = ''
             unless current_class.opened:
@@ -79,11 +79,11 @@ class MethodBlock:
                 return ''
 
             let splited_params = this.params.split(',').map(function(item) {
-                let attr_n_value = item.split('=');
+                let attr_n_value = item.split('=')
                 return {
                     attr : attr_n_value[0].trim(), 
                     value: attr_n_value.length > 1 ? attr_n_value[1].trim() : null
-                };
+                }
             })
             
             let str_return = '', params_names = []

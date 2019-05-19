@@ -3,6 +3,11 @@ use Blocks/Block
 class ClassBlock:
     extends Block
     public:
+        ###
+        @method constructor
+        @param string name
+        @param string params
+        ###
         method constructor(name, params):
             this.configureBlockProps(Block.CLASS_BLOCK_TYPE_NAME, params)
             this.name = this.validName(name, /^(([A-Z])(\d)|([A-Z][a-z0-9]+))*([A-Z])?$/, 'CamelCase with leading uppercase.')
@@ -92,7 +97,6 @@ class ClassBlock:
             get: method
                 unless this.defaults_method:
                     this.defaults_method = "__set_defaults(){"
-                    #for index in this.attrs as val:
                     for index in this.defaults as def:
                         this.defaults_method += `this.__${index} = ${def};`
                     this.defaults_method += "}"

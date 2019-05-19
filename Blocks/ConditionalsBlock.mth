@@ -3,9 +3,19 @@ use Blocks/Block
 class ConditionalsBlock:
     extends Block
     public:
+        ###
+        @method constructor
+        @param string type
+        @param string name
+        @param string params
+        ###
         method constructor(type, name, params):
             this.configureBlockProps(type, params)
-   
+
+        ###
+        Returns block open
+        @method open
+        ###
         method open:
             return `${this.open_start}${this.params}${this.open_finish}`;
 

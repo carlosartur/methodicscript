@@ -3,6 +3,12 @@ use Blocks/Block
 class AttrBlock:
     extends Block
     public:
+        ###
+        @method constructor
+        @param String type
+        @param String name
+        @param String params
+        ###
         method constructor(type, name, params):
             this.configureBlockProps(type, params)
             switch current_visibility:
@@ -19,10 +25,18 @@ class AttrBlock:
             params = params.replace(/:$/, '')
             current_class.setDefault(this.name, (params ? params : "null"))
             current_attr = this
-
+        
+        ###
+        Retuns blank
+        @method open
+        ###
         method open:
             return ''
-
+        
+        ###
+        Returns js getters and setters of the attr
+        @method close
+        ###
         method close:
             var ret = ''
             if this.getter
@@ -31,3 +45,14 @@ class AttrBlock:
             if this.setter
                 ret += this.setter
             return ret
+    
+    private:
+        ###
+        @attr setter
+        ###
+        attr setter
+        
+        ###
+        @attr getter
+        ###
+        attr getter

@@ -3,10 +3,17 @@ use Blocks/Block
 class VisibilityBlock:
     extends Block
     public:
+        ###
+        @method constructor
+        @param String type
+        ###
         method constructor(type):
             this.configureBlockProps(type)
             current_visibility = type
         
+        ###
+        @method open
+        ###
         method open:
             var ret = ''
             unless current_class.opened:
@@ -14,6 +21,9 @@ class VisibilityBlock:
             current_visibility = this.type
             return `${ret} //${this.type}`
         
+        ###
+        @method close
+        ###
         method close:
             current_visibility = false
             super.close()

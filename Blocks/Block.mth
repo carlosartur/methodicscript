@@ -4,7 +4,14 @@ Class Block
 class Block:
     abstract
     static:
+        ###
+        @const CONSTRUCTOR_METHOD_NAME
+        ###
         const CONSTRUCTOR_METHOD_NAME = 'constructor'
+        
+        ###
+        @const CLASS_BLOCK_TYPE_NAME
+        ###
         const CLASS_BLOCK_TYPE_NAME = 'class'
     public:
         ###
@@ -46,11 +53,11 @@ class Block:
             var fatherBlock = blockStack[blockStack.length - 2];
             if fatherBlock && fatherBlock.name && this.type == "class" && fatherBlock.name == this.name:
                 return true
-            if !this.can_be_child && fatherBlock:
+            unless this.can_be_child && fatherBlock:
                 throw new SyntaxError(`${this.type} can't be inside of ${fatherBlock.type}. On line ${parseInt(n_line) + 1}`)
             if this.must_be_child:
                 var must_be_inside_of = this.can_be_inside.length > 1 ? `one of this: ${this.can_be_inside.join()}` : `of ${this.can_be_inside[0]}`
-                if !fatherBlock:
+                unless fatherBlock:
                     throw new SyntaxError(`${this.type} can't be alone, it must be inside ${must_be_inside_of}. On line ${parseInt(n_line) + 1}`)
                 if this.can_be_inside.indexOf(fatherBlock.type) == -1:
                     throw new SyntaxError(`${this.type} can't be inside ${fatherBlock.type}, it must be inside ${must_be_inside_of}. On line ${parseInt(n_line) + 1}`)
@@ -63,6 +70,10 @@ class Block:
 
         ###
         Returns if is a valid codeblock name
+        @method validName
+        @param String name
+        @param RegExp regex
+        @param String regexName
         ###
         method validName(name, regex, regexName):
             var error_name = `Bad programming pratice error on line ${n_line * 1 + 1}.`
