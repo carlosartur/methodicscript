@@ -1,0 +1,61 @@
+use Blocks/Block
+
+class ErrorHandling:
+    extends Block
+    public:
+        ###
+        @method constructor
+        @param string type
+        @param string params
+        ###
+        method constructor(type, params):
+            this.configureBlockProps(type, params)
+            unless type == 'is':
+                current_error_handling = this
+
+        ###
+        @attr bool has_is_inside
+        ### 
+        attr has_is_inside = false
+
+        ###
+        @method open
+        @returns string
+        ###
+        method open:
+            return this[`open_${this.type}`]
+
+    private:
+        ###
+        @attr string open_is
+        ###
+        attr open_is = `if (${current_error_handling.params} instanceof ${this.params}) {`:
+            get: method
+                current_error_handling.has_is_inside = true;
+                return this.open_is
+        ###
+        @attr string open_catch
+        ###
+        attr open_catch = `catch (${this.params}) {`
+        
+        ###
+        @attr string open_try
+        ###
+        attr open_try = 'try {'
+
+        ###
+        @attr string open_finally
+        ###
+        attr open_finally = 'finally {'
+
+        ###
+        @attr string open_another
+        ###
+        attr open_another = ' {'
+
+        ###
+        @method close
+        @returns String
+        ###
+        method close:
+            return `${this._close}`

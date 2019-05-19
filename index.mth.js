@@ -26,223 +26,14 @@ function echo() {
             return;
     }
 }
-class ClassBlock extends Block {
-    //public
-    constructor(name, params) {
-        super();
-        this.__set_defaults();
-        this.__configureBlockProps(Block.CLASS_BLOCK_TYPE_NAME, params)
-        this.__name = this.__validName(name, /^(([A-Z])(\d)|([A-Z][a-z0-9]+))*([A-Z])?$/, 'CamelCase with leading uppercase.')
-        current_class = this
-        classes[class_name] = this
-        /**
-         *Closes class, with traits and setDefaults
-         *@returns string
-         */
-    }
-    close() {
-        return this.__close.apply(this, arguments);
-    }
-    __close() {
-        var ret = '';
-        var traits_code = '';
-        ret += this.__constructor_method;
-        if (this.traits.length) {
-            traits_code += `trait(${this.__name}, ${this.__traits.join(',')});`
-        } //if
-        ret += this.__defaultsMethod
-        current_visibility = '';
-        return `${ret} ${this.___close} ${traits_code} //${this.__type} ${this.__name}`;
-        /**
-         *Opens class, verifying if it extends something, traits something
-         *@param numeric number_line default -1
-         *@param string line default ''
-         *@returns string
-         */
-        return this;
-    } // method //method
-    open() {
-        return this.__open.apply(this, arguments);
-    }
-    __open(number_line, line) {
-        number_line = typeof number_line !== 'undefined' ? number_line : -1;
-        line = typeof line !== 'undefined' ? line : '';
-        try {
-            if (!(this.opened)) {
-                this.__verifyCorrectPlace(number_line)
-            } //unless
-        } catch (exception) {
-            throw exception
-        }
-        this.__opened = true
-        return `class ${this.__name} extends ${this.__parent} {`
-        /**
-         *Add class attrs to class
-         *@param string name
-         *@param any val
-         */
-        return this;
-    } // method //methodwithdefaultparams
-    addDefault() {
-        return this.__addDefault.apply(this, arguments);
-    }
-    __addDefault(name, val) {
-        this.__defaults[name] = val
-        return this;
-    } // method //method
-
-    //private
-    /**
-     *@attr attrs
-     */
-
-    /**
-     *@attr methods
-     */
-    get attrs() {
-        throw new Error("attrs is a private attribute, it's value can't be get outside it's class")
-    }
-    set attrs(val) {
-        throw new Error("attrs is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr parent
-     */
-    get methods() {
-        throw new Error("methods is a private attribute, it's value can't be get outside it's class")
-    }
-    set methods(val) {
-        throw new Error("methods is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr opened
-     */
-    get parent() {
-        throw new Error("parent is a private attribute, it's value can't be get outside it's class")
-    }
-    set parent(val) {
-        throw new Error("parent is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr traits
-     */
-    get opened() {
-        throw new Error("opened is a private attribute, it's value can't be get outside it's class")
-    }
-    set opened(val) {
-        throw new Error("opened is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr defaults
-     */
-    get traits() {
-        throw new Error("traits is a private attribute, it's value can't be get outside it's class")
-    }
-    set traits(val) {
-        throw new Error("traits is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr is_abstract
-     */
-    get defaults() {
-        throw new Error("defaults is a private attribute, it's value can't be get outside it's class")
-    }
-    set defaults(val) {
-        throw new Error("defaults is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr defaultsMethod
-     */
-    get is_abstract() {
-        throw new Error("is_abstract is a private attribute, it's value can't be get outside it's class")
-    }
-    set is_abstract(val) {
-        throw new Error("is_abstract is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    get defaults_method() {
-        if (!(this.defaults_method)) {
-            this.__defaults_method = "__set_defaults(){"
-            //for index in this.attrs as val:
-            for (var index in this.defaults) {
-                var def = this.defaults[index]
-                this.__defaults_method += `this.____${index} = ${def};`
-            } //foreach
-            this.__defaults_method += "}"
-        } //unless
-        return this.__defaults_method
-        /**
-         *@attr constructor_method
-         */
-    } //get
-    set defaults_method(val) {
-        throw new Error("defaults_method is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    get constructor_method() {
-        if (!(this.isClass)) {
-            return false
-        } //unless
-        if (!(this.constructor_method)) {
-            this.__buildConstructor()
-        } //unless
-        return this.__constructor_method
-        /**
-         *@method buildConstructor
-         *@param string block default ''
-         */
-    } //get
-    set constructor_method(val) {
-        throw new Error("constructor_method is a private attribute, it's value can't be changed outside it's class")
-    }
-    buildConstructor() {
-        throw new Error('Trying to access a private method buildConstructor.');
-    }
-    __buildConstructor(block) {
-        block = typeof block !== 'undefined' ? block : '';
-        if (!(this.isClass)) {
-            return false
-        } //unless
-        if (block) {
-            this.__constructor = block
-            return this.__constructor
-        } //if
-        for (var index in this.attrs) {
-            var val = this.attrs[index]
-            block += `this.__${val} typeof ${val} == 'undefined' ? null : ${val};`
-        } //foreach
-        if (this.is_abstract) {
-            block += `if (new.target === ${this.__name}) {throw new TypeError("Cannot construct Abstract instances directly");}`
-        } //if
-        this.__constructor_method = `constructor(${this.__attrs.join(', ')}) {
-super();
-this.____set_defaults();
-${block}
-}`;
-        this.__methods.unshift(this.__constructor_method);
-        return this;
-    } // method //methodwithdefaultparams
-
-    __set_defaults() {
-        this.__attrs = [];
-        this.__methods = [];
-        this.__parent = 'Object';
-        this.__opened = false;
-        this.__traits = [];
-        this.__defaults = {};
-        this.__is_abstract = false;
-        this.__defaults_method = null;
-        this.__constructor_method = false;
-    }
-} //class  //class ClassBlock
 class AttrBlock extends Block {
     //public
+    /**
+     *@method constructor
+     *@param String type
+     *@param String name
+     *@param String params
+     */
     constructor(type, name, params) {
         super();
         this.__set_defaults();
@@ -264,12 +55,20 @@ class AttrBlock extends Block {
         params = params.replace(/:$/, '')
         current_class.setDefault(this.__name, (params ? params : "null"))
         current_attr = this
+        /**
+         *Retuns blank
+         *@method open
+         */
     }
     open() {
         return this.__open.apply(this, arguments);
     }
     __open() {
         return ''
+        /**
+         *Returns js getters and setters of the attr
+         *@method close
+         */
         return this;
     } // method //method
     close() {
@@ -285,7 +84,32 @@ class AttrBlock extends Block {
         return this;
     } // method //method
 
-    __set_defaults() {}
+    //private
+    /**
+     *@attr setter
+     */
+
+    /**
+     *@attr getter
+     */
+    get setter() {
+        throw new Error("setter is a private attribute, it's value can't be get outside it's class")
+    }
+    set setter(val) {
+        throw new Error("setter is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    get getter() {
+        throw new Error("getter is a private attribute, it's value can't be get outside it's class")
+    }
+    set getter(val) {
+        throw new Error("getter is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    __set_defaults() {
+        this.__setter = null;
+        this.__getter = null;
+    }
 } //class  //class AttrBlock
 class ConstBlock extends Block {
     //public
@@ -312,10 +136,20 @@ static set ${this.__name} (value) {throw new Error("${this.__name} is a class co
 } //class  //class ConstBlock
 class ConditionalsBlock extends Block {
     //public
+    /**
+     *@method constructor
+     *@param string type
+     *@param string name
+     *@param string params
+     */
     constructor(type, name, params) {
         super();
         this.__set_defaults();
         this.__configureBlockProps(type, params)
+        /**
+         *Returns block open
+         *@method open
+         */
     }
     open() {
         return this.__open.apply(this, arguments);
@@ -528,20 +362,252 @@ class ConditionalsBlock extends Block {
         this.__open_finish = null;
     }
 } //class  //class ConditionalsBlock
+class ClassBlock extends Block {
+    //public
+    /**
+     *@method constructor
+     *@param string name
+     *@param string params
+     */
+    constructor(name, params) {
+        super();
+        this.__set_defaults();
+        this.__configureBlockProps(Block.CLASS_BLOCK_TYPE_NAME, params)
+        this.__name = this.__validName(name, /^(([A-Z])(\d)|([A-Z][a-z0-9]+))*([A-Z])?$/, 'CamelCase with leading uppercase.')
+        current_class = this
+        classes[class_name] = this
+        /**
+         *Closes class, with traits and setDefaults
+         *@returns string
+         */
+    }
+    close() {
+        return this.__close.apply(this, arguments);
+    }
+    __close() {
+        var ret = '';
+        var traits_code = '';
+        ret += this.__constructor_method;
+        if (this.traits.length) {
+            traits_code += `trait(${this.__name}, ${this.__traits.join(',')});`
+        } //if
+        ret += this.__defaultsMethod
+        current_visibility = '';
+        return `${ret} ${this.___close} ${traits_code} //${this.__type} ${this.__name}`;
+        /**
+         *Opens class, verifying if it extends something, traits something
+         *@param numeric number_line default -1
+         *@param string line default ''
+         *@returns string
+         */
+        return this;
+    } // method //method
+    open() {
+        return this.__open.apply(this, arguments);
+    }
+    __open(number_line, line) {
+        number_line = typeof number_line !== 'undefined' ? number_line : -1;
+        line = typeof line !== 'undefined' ? line : '';
+        try {
+            if (!(this.opened)) {
+                this.__verifyCorrectPlace(number_line)
+            } //unless
+        } catch (exception) {
+            throw exception
+        }
+        this.__opened = true
+        return `class ${this.__name} extends ${this.__parent} {`
+        /**
+         *Add class attrs to class
+         *@param string name
+         *@param any val
+         */
+        return this;
+    } // method //methodwithdefaultparams
+    addDefault() {
+        return this.__addDefault.apply(this, arguments);
+    }
+    __addDefault(name, val) {
+        this.__defaults[name] = val
+        return this;
+    } // method //method
+
+    //private
+    /**
+     *@attr attrs
+     */
+
+    /**
+     *@attr methods
+     */
+    get attrs() {
+        throw new Error("attrs is a private attribute, it's value can't be get outside it's class")
+    }
+    set attrs(val) {
+        throw new Error("attrs is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    /**
+     *@attr parent
+     */
+    get methods() {
+        throw new Error("methods is a private attribute, it's value can't be get outside it's class")
+    }
+    set methods(val) {
+        throw new Error("methods is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    /**
+     *@attr opened
+     */
+    get parent() {
+        throw new Error("parent is a private attribute, it's value can't be get outside it's class")
+    }
+    set parent(val) {
+        throw new Error("parent is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    /**
+     *@attr traits
+     */
+    get opened() {
+        throw new Error("opened is a private attribute, it's value can't be get outside it's class")
+    }
+    set opened(val) {
+        throw new Error("opened is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    /**
+     *@attr defaults
+     */
+    get traits() {
+        throw new Error("traits is a private attribute, it's value can't be get outside it's class")
+    }
+    set traits(val) {
+        throw new Error("traits is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    /**
+     *@attr is_abstract
+     */
+    get defaults() {
+        throw new Error("defaults is a private attribute, it's value can't be get outside it's class")
+    }
+    set defaults(val) {
+        throw new Error("defaults is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    /**
+     *@attr defaultsMethod
+     */
+    get is_abstract() {
+        throw new Error("is_abstract is a private attribute, it's value can't be get outside it's class")
+    }
+    set is_abstract(val) {
+        throw new Error("is_abstract is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    get defaults_method() {
+        if (!(this.defaults_method)) {
+            this.__defaults_method = "__set_defaults(){"
+            for (var index in this.defaults) {
+                var def = this.defaults[index]
+                this.__defaults_method += `this.____${index} = ${def};`
+            } //foreach
+            this.__defaults_method += "}"
+        } //unless
+        return this.__defaults_method
+        /**
+         *@attr constructor_method
+         */
+    } //get
+    set defaults_method(val) {
+        throw new Error("defaults_method is a private attribute, it's value can't be changed outside it's class")
+    }
+
+    get constructor_method() {
+        if (!(this.isClass)) {
+            return false
+        } //unless
+        if (!(this.constructor_method)) {
+            this.__buildConstructor()
+        } //unless
+        return this.__constructor_method
+        /**
+         *@method buildConstructor
+         *@param string block default ''
+         */
+    } //get
+    set constructor_method(val) {
+        throw new Error("constructor_method is a private attribute, it's value can't be changed outside it's class")
+    }
+    buildConstructor() {
+        throw new Error('Trying to access a private method buildConstructor.');
+    }
+    __buildConstructor(block) {
+        block = typeof block !== 'undefined' ? block : '';
+        if (!(this.isClass)) {
+            return false
+        } //unless
+        if (block) {
+            this.__constructor = block
+            return this.__constructor
+        } //if
+        for (var index in this.attrs) {
+            var val = this.attrs[index]
+            block += `this.__${val} typeof ${val} == 'undefined' ? null : ${val};`
+        } //foreach
+        if (this.is_abstract) {
+            block += `if (new.target === ${this.__name}) {throw new TypeError("Cannot construct Abstract instances directly");}`
+        } //if
+        this.__constructor_method = `constructor(${this.__attrs.join(', ')}) {
+super();
+this.____set_defaults();
+${block}
+}`;
+        this.__methods.unshift(this.__constructor_method);
+        return this;
+    } // method //methodwithdefaultparams
+
+    __set_defaults() {
+        this.__attrs = [];
+        this.__methods = [];
+        this.__parent = 'Object';
+        this.__opened = false;
+        this.__traits = [];
+        this.__defaults = {};
+        this.__is_abstract = false;
+        this.__defaults_method = null;
+        this.__constructor_method = false;
+    }
+} //class  //class ClassBlock
 class LoopBlock extends Block {
     //public
+    /**
+     *@method constructor
+     *@param string type
+     *@param string name
+     *@param string params
+     */
     constructor(type, name, params) {
         super();
         this.__set_defaults();
         this.__configureBlockProps(type, params)
-        if this.__type == "repeat"
-        inside_do = true
+        if (this.type == "repeat") {
+            inside_do = true
+            /**
+             *@method open
+             */
+        } //if
     }
     open() {
         return this.__open.apply(this, arguments);
     }
     __open() {
         return this[`open_${this.__type}`]
+        /**
+         *@method close
+         */
         return this;
     } // method //method
     close() {
@@ -737,37 +803,6 @@ class LoopBlock extends Block {
         this.__step_ = null;
     }
 } //class  //class LoopBlock
-class VisibilityBlock extends Block {
-    //public
-    constructor(type) {
-        super();
-        this.__set_defaults();
-        this.__configureBlockProps(type)
-        current_visibility = type
-    }
-    open() {
-        return this.__open.apply(this, arguments);
-    }
-    __open() {
-        var ret = ''
-        if (!(current_class.opened)) {
-            ret += current_class.open()
-        } //unless
-        current_visibility = this.__type
-        return `${ret} //${this.__type}`
-        return this;
-    } // method //method
-    close() {
-        return this.__close.apply(this, arguments);
-    }
-    __close() {
-        current_visibility = false
-        super.close()
-        return this;
-    } // method //method
-
-    __set_defaults() {}
-} //class  //class VisibilityBlock
 class MethodBlock extends Block {
     //public
     constructor(type, name, params) {
@@ -782,11 +817,15 @@ class MethodBlock extends Block {
          *@returns string
          */
     }
-    open(number_line):
+    open() {
+        return this.__open.apply(this, arguments);
+    }
+    __open(number_line) {
         this.__verifyCorrectPlace(number_line)
-    var ret = ''
-    if (!(current_class.opened)) {
-        ret += current_class.open()
+        var ret = ''
+        if (!(current_class.opened)) {
+            ret += current_class.open()
+        } //unless
         if (this.name == 'constructor') {
             return this.__openConstructor(ret)
         } //if
@@ -807,7 +846,8 @@ class MethodBlock extends Block {
         } //if
         return `${ret} ${getter}
 ${current_visibility == "static" ? "static" : ''} __${this.__name}(${this.__params}) { ${default_params_lines}`
-    } //unless
+        return this;
+    } // method //method
 
     //private
     /**
@@ -878,11 +918,11 @@ ${current_visibility == "static" ? "static" : ''} __${this.__name}(${this.__para
             return ''
         } //unless
         let splited_params = this.__params.split(',').map(function(item) {
-            let attr_n_value = item.split('=');
+            let attr_n_value = item.split('=')
             return {
                 attr: attr_n_value[0].trim(),
                 value: attr_n_value.length > 1 ? attr_n_value[1].trim() : null
-            };
+            }
         })
         let str_return = '',
             params_names = []
@@ -904,18 +944,65 @@ ${current_visibility == "static" ? "static" : ''} __${this.__name}(${this.__para
         this.__is_function = null;
     }
 } //class  //class MethodBlock
+class VisibilityBlock extends Block {
+    //public
+    /**
+     *@method constructor
+     *@param String type
+     */
+    constructor(type) {
+        super();
+        this.__set_defaults();
+        this.__configureBlockProps(type)
+        current_visibility = type
+        /**
+         *@method open
+         */
+    }
+    open() {
+        return this.__open.apply(this, arguments);
+    }
+    __open() {
+        var ret = ''
+        if (!(current_class.opened)) {
+            ret += current_class.open()
+        } //unless
+        current_visibility = this.__type
+        return `${ret} //${this.__type}`
+        /**
+         *@method close
+         */
+        return this;
+    } // method //method
+    close() {
+        return this.__close.apply(this, arguments);
+    }
+    __close() {
+        current_visibility = false
+        super.close()
+        return this;
+    } // method //method
+
+    __set_defaults() {}
+} //class  //class VisibilityBlock
 /**
  *Class Block
  */
 //abstract
 class Block extends Object {
     //static
+    /**
+     *@const CONSTRUCTOR_METHOD_NAME
+     */
     static get CONSTRUCTOR_METHOD_NAME() {
         return 'constructor'
     }
     static set CONSTRUCTOR_METHOD_NAME(value) {
         throw new Error("CONSTRUCTOR_METHOD_NAME is a class constant, and can't have his value changed to " + value)
     }
+    /**
+     *@const CLASS_BLOCK_TYPE_NAME
+     */
     //const
     static get CLASS_BLOCK_TYPE_NAME() {
         return 'class'
@@ -984,14 +1071,14 @@ class Block extends Object {
         if (fatherBlock && fatherBlock.name && this.type == "class" && fatherBlock.name == this.name) {
             return true
         } //if
-        if (!this.can_be_child && fatherBlock) {
+        if (!(this.can_be_child && fatherBlock)) {
             throw new SyntaxError(`${this.__type} can't be inside of ${fatherBlock.type}. On line ${parseInt(n_line) + 1}`)
-        } //if
+        } //unless
         if (this.must_be_child) {
             var must_be_inside_of = this.__can_be_inside.length > 1 ? `one of this: ${this.__can_be_inside.join()}` : `of ${this.__can_be_inside[0]}`
-            if (!fatherBlock) {
+            if (!(fatherBlock)) {
                 throw new SyntaxError(`${this.__type} can't be alone, it must be inside ${must_be_inside_of}. On line ${parseInt(n_line) + 1}`)
-            } //if
+            } //unless
             if (this.can_be_inside.indexOffatherBlock.type == -1) {
                 throw new SyntaxError(`${this.__type} can't be inside ${fatherBlock.type}, it must be inside ${must_be_inside_of}. On line ${parseInt(n_line) + 1}`)
                 /**
@@ -1009,6 +1096,10 @@ class Block extends Object {
         return this.__type === Block.CLASS_BLOCK_TYPE_NAME
         /**
          *Returns if is a valid codeblock name
+         *@method validName
+         *@param String name
+         *@param RegExp regex
+         *@param String regexName
          */
         return this;
     } // method //method
