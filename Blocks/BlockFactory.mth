@@ -1,0 +1,104 @@
+use Blocks/AttrBlock
+use Blocks/ClassBlock
+use Blocks/ConditionalsBlock
+use Blocks/ConstBlock
+use Blocks/ErrorHandlingBlock
+use Blocks/GetterAndSetterBlock
+use Blocks/LoopBlock
+use Blocks/MethodBlock
+use Blocks/VisibilityBlock
+
+class BlockFactory:
+    static:
+        ###
+        Returns new block
+        @method build
+        @param string type
+        @param string name
+        @param string params
+        @returns Block
+        ###
+        method build(type, name = '', params = ''):
+            let type_block_function = {
+                blockClass: ['class'],
+                blockMethodDefaultParams: ['methodwithdefaultparams', 'functionwithdefaultparams'],
+                blockMethod: ["method", "function"],
+                blockVisibility: ["public", "private", "static"],
+                blockAttr: ['attr'],
+                blockConst: ['const'],
+                blockSetterAndGetter: ["set", "get"],
+                blockConditional: ["if", "elseif", "unless", "else", "elseunless", "switch", "", "default"],
+                blockLoop: [ "from", "foreach", "while", "repeat"],
+                blockErrorHandling: ["try", "catch", "is", "finally", "another"]
+            }
+
+            for met in type_block_function as types:
+                if types.includes(type):
+                    return BlockFactory[`${met}`](type, name, params)
+            
+            throw new SintaxError("Can't identify code block type")
+        
+        ###
+        @method blockClass
+        ###
+        method blockClass(type, name, params):
+            return new ClassBlock(type)
+            
+        ###
+        @method blockMethodDefaultParams
+        ###
+        method blockMethodDefaultParams(type, name, params):
+            let methodObj = new MethodBlock(type, name, params)
+            methodObj.hasDefaultParams()
+            return methodObj
+
+        ###
+        @method blockMethod
+        ###
+        method blockMethod(type, name, params):
+            return new MethodBlock(type, name, params)
+
+        ###
+        @method blockVisibility
+        ###
+        method blockVisibility(type, name, params):
+            return new VisibilityBlock(type)
+
+        ###
+        @method blockAttr
+        ###
+        method blockAttr(type, name, params):
+            return new AttrBlock(type, name, params)
+
+        ###
+        @method blockConst
+        ###
+        method blockConst(type, name, params):
+            return new ConstBlock(type, name, params)
+
+        ###
+        @method blockSetterAndGetter
+        ###
+        method blockSetterAndGetter(type, name, params):
+            return new GetterAndSetterBlock(type, params)
+
+        ###
+        @method blockConditional
+        ###
+        method blockConditional(type, name, params):
+            return new ConditionalsBlock(type, params)
+
+        ###
+        @method blockLoop
+        ###
+        method blockLoop(type, name, params):
+            return new LoopBlock(type, params)
+
+        ###
+        @method blockErrorHandling
+        ###
+        method blockErrorHandling(type, name, params):
+            return new ErrorHandlingBlock(type, params)
+
+
+        

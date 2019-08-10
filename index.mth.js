@@ -26,6 +26,117 @@ function echo() {
             return;
     }
 }
+class BlockFactory extends Object { //static
+    /**
+     *Returns new block
+     *@method build
+     *@param string type
+     *@param string name
+     *@param string params
+     *@returns Block
+     */
+    static build(type, name = '', params = '') {
+        let type_block_function = {
+            blockClass: ['class'],
+            blockMethodDefaultParams: ['methodwithdefaultparams', 'functionwithdefaultparams'],
+            blockMethod: ["method", "function"],
+            blockVisibility: ["public", "private", "static"],
+            blockAttr: ['attr'],
+            blockConst: ['const'],
+            blockSetterAndGetter: ["set", "get"],
+            blockConditional: ["if", "elseif", "unless", "else", "elseunless", "switch", "", "default"],
+            blockLoop: ["from", "foreach", "while", "repeat"],
+            blockErrorHandling: ["try", "catch", "is", "finally", "another"]
+        }
+        for (var met in type_block_function) {
+            var types = type_block_function[met]
+            if (types.includestype) {
+                return BlockFactory[`${met}`](type, name, params)
+            } //if
+        } //foreach
+        throw new SintaxError("Can't identify code block type")
+        /**
+         *@method blockClass
+         */
+        return this;
+    } // method //methodwithdefaultparams
+    static blockClass(type, name, params) {
+        return new ClassBlock(type)
+        /**
+         *@method blockMethodDefaultParams
+         */
+        return null
+    } //method
+    static blockMethodDefaultParams(type, name, params) {
+        let methodObj = new MethodBlock(type, name, params)
+        methodObj.hasDefaultParams()
+        return methodObj
+        /**
+         *@method blockMethod
+         */
+        return null
+    } //method
+    static blockMethod(type, name, params) {
+        return new MethodBlock(type, name, params)
+        /**
+         *@method blockVisibility
+         */
+        return null
+    } //method
+    static blockVisibility(type, name, params) {
+        return new VisibilityBlock(type)
+        /**
+         *@method blockAttr
+         */
+        return null
+    } //method
+    static blockAttr(type, name, params) {
+        return new AttrBlock(type, name, params)
+        /**
+         *@method blockConst
+         */
+        return null
+    } //method
+    static blockConst(type, name, params) {
+        return new ConstBlock(type, name, params)
+        /**
+         *@method blockSetterAndGetter
+         */
+        return null
+    } //method
+    static blockSetterAndGetter(type, name, params) {
+        return new GetterAndSetterBlock(type, params)
+        /**
+         *@method blockConditional
+         */
+        return null
+    } //method
+    static blockConditional(type, name, params) {
+        return new ConditionalsBlock(type, params)
+        /**
+         *@method blockLoop
+         */
+        return null
+    } //method
+    static blockLoop(type, name, params) {
+        return new LoopBlock(type, params)
+        /**
+         *@method blockErrorHandling
+         */
+        return null
+    } //method
+    static blockErrorHandling(type, name, params) {
+        return new ErrorHandlingBlock(type, params)
+        return null
+    } //method
+
+    constructor() {
+        super();
+        this.__set_defaults();
+
+    }
+    __set_defaults() {}
+} //class  //class BlockFactory
 class AttrBlock extends Block {
     //public
     /**
@@ -93,17 +204,19 @@ class AttrBlock extends Block {
      *@attr getter
      */
     get setter() {
-        throw new Error("setter is a private attribute, it's value can't be get outside it's class")
+        throw new Error("setter is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set setter(val) {
-        throw new Error("setter is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("setter is a private attribute, it's value can't be changed outside it's class");
     }
 
     get getter() {
-        throw new Error("getter is a private attribute, it's value can't be get outside it's class")
+        throw new Error("getter is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set getter(val) {
-        throw new Error("getter is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("getter is a private attribute, it's value can't be changed outside it's class");
     }
 
     __set_defaults() {
@@ -111,257 +224,6 @@ class AttrBlock extends Block {
         this.__getter = null;
     }
 } //class  //class AttrBlock
-class ConstBlock extends Block {
-    //public
-    constructor(type, name, params) {
-        super();
-        this.__set_defaults();
-        this.__configureBlockProps(type, params)
-        this.__name = this.__validName(name, /^[A-Z_]+((\d)|([A-Z0-9]+))*$/, 'SNAKE_CASE_ALL_UPPERCASE.')
-        /**
-         *Opens a CONST block
-         *@returns string
-         */
-    }
-    open() {
-        return this.__open.apply(this, arguments);
-    }
-    __open() {
-        return `static get ${this.__name} () {return ${this.__params}}
-static set ${this.__name} (value) {throw new Error("${this.__name} is a class constant, and can't have his value changed to " + value)}`
-        return this;
-    } // method //method
-
-    __set_defaults() {}
-} //class  //class ConstBlock
-class ConditionalsBlock extends Block {
-    //public
-    /**
-     *@method constructor
-     *@param string type
-     *@param string name
-     *@param string params
-     */
-    constructor(type, name, params) {
-        super();
-        this.__set_defaults();
-        this.__configureBlockProps(type, params)
-        /**
-         *Returns block open
-         *@method open
-         */
-    }
-    open() {
-        return this.__open.apply(this, arguments);
-    }
-    __open() {
-        return `${this.__open_start}${this.__params}${this.__open_finish}`;
-        return this;
-    } // method //method
-
-    //private
-    /**
-     *@attr open_start_if
-     */
-
-    /**
-     *@attr open_start_unless
-     */
-    get open_start_if() {
-        throw new Error("open_start_if is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_start_if(val) {
-        throw new Error("open_start_if is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_start_elseif
-     */
-    get open_start_unless() {
-        throw new Error("open_start_unless is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_start_unless(val) {
-        throw new Error("open_start_unless is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_start_else
-     */
-    get open_start_elseif() {
-        throw new Error("open_start_elseif is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_start_elseif(val) {
-        throw new Error("open_start_elseif is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_start_elseunless
-     */
-    get open_start_else() {
-        throw new Error("open_start_else is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_start_else(val) {
-        throw new Error("open_start_else is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_start_switch
-     */
-    get open_start_elseunless() {
-        throw new Error("open_start_elseunless is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_start_elseunless(val) {
-        throw new Error("open_start_elseunless is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_start_case
-     */
-    get open_start_switch() {
-        throw new Error("open_start_switch is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_start_switch(val) {
-        throw new Error("open_start_switch is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_start_default
-     */
-    get open_start_case() {
-        throw new Error("open_start_case is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_start_case(val) {
-        throw new Error("open_start_case is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_finish_if
-     */
-    get open_start_default() {
-        throw new Error("open_start_default is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_start_default(val) {
-        throw new Error("open_start_default is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_finish_unless
-     */
-    get open_finish_if() {
-        throw new Error("open_finish_if is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_finish_if(val) {
-        throw new Error("open_finish_if is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_finish_elseif
-     */
-    get open_finish_unless() {
-        throw new Error("open_finish_unless is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_finish_unless(val) {
-        throw new Error("open_finish_unless is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_finish_else
-     */
-    get open_finish_elseif() {
-        throw new Error("open_finish_elseif is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_finish_elseif(val) {
-        throw new Error("open_finish_elseif is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_finish_elseunless
-     */
-    get open_finish_else() {
-        throw new Error("open_finish_else is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_finish_else(val) {
-        throw new Error("open_finish_else is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_finish_switch
-     */
-    get open_finish_elseunless() {
-        throw new Error("open_finish_elseunless is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_finish_elseunless(val) {
-        throw new Error("open_finish_elseunless is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_finish_case
-     */
-    get open_finish_switch() {
-        throw new Error("open_finish_switch is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_finish_switch(val) {
-        throw new Error("open_finish_switch is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_finish_default
-     */
-    get open_finish_case() {
-        throw new Error("open_finish_case is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_finish_case(val) {
-        throw new Error("open_finish_case is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    /**
-     *@attr open_start
-     */
-    get open_finish_default() {
-        throw new Error("open_finish_default is a private attribute, it's value can't be get outside it's class")
-    }
-    set open_finish_default(val) {
-        throw new Error("open_finish_default is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    get open_start() {
-        this[`open_start_${this.__type}`]
-        /**
-         *@attr open_finish
-         */
-    } //get
-    set open_start(val) {
-        throw new Error("open_start is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    get open_finish() {
-        this[`open_finish_${this.__type}`]
-    } //get
-    set open_finish(val) {
-        throw new Error("open_finish is a private attribute, it's value can't be changed outside it's class")
-    }
-
-    __set_defaults() {
-        this.__open_start_if = `if`;
-        this.__open_start_unless = `if!`;
-        this.__open_start_elseif = `else if`;
-        this.__open_start_else = `else {`;
-        this.__open_start_elseunless = `else if!`;
-        this.__open_start_switch = `switch `;
-        this.__open_start_case = `case `;
-        this.__open_start_default = `default:`;
-        this.__open_finish_if = ` {`;
-        this.__open_finish_unless = ` {`;
-        this.__open_finish_elseif = ` {`;
-        this.__open_finish_else = ``;
-        this.__open_finish_elseunless = ` {`;
-        this.__open_finish_switch = ` {`;
-        this.__open_finish_case = `:`;
-        this.__open_finish_default = null;
-        this.__open_start = null;
-        this.__open_finish = null;
-    }
-} //class  //class ConditionalsBlock
 class ClassBlock extends Block {
     //public
     /**
@@ -441,70 +303,77 @@ class ClassBlock extends Block {
      *@attr methods
      */
     get attrs() {
-        throw new Error("attrs is a private attribute, it's value can't be get outside it's class")
+        throw new Error("attrs is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set attrs(val) {
-        throw new Error("attrs is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("attrs is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr parent
      */
     get methods() {
-        throw new Error("methods is a private attribute, it's value can't be get outside it's class")
+        throw new Error("methods is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set methods(val) {
-        throw new Error("methods is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("methods is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr opened
      */
     get parent() {
-        throw new Error("parent is a private attribute, it's value can't be get outside it's class")
+        throw new Error("parent is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set parent(val) {
-        throw new Error("parent is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("parent is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr traits
      */
     get opened() {
-        throw new Error("opened is a private attribute, it's value can't be get outside it's class")
+        throw new Error("opened is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set opened(val) {
-        throw new Error("opened is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("opened is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr defaults
      */
     get traits() {
-        throw new Error("traits is a private attribute, it's value can't be get outside it's class")
+        throw new Error("traits is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set traits(val) {
-        throw new Error("traits is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("traits is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr is_abstract
      */
     get defaults() {
-        throw new Error("defaults is a private attribute, it's value can't be get outside it's class")
+        throw new Error("defaults is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set defaults(val) {
-        throw new Error("defaults is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("defaults is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr defaultsMethod
      */
     get is_abstract() {
-        throw new Error("is_abstract is a private attribute, it's value can't be get outside it's class")
+        throw new Error("is_abstract is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set is_abstract(val) {
-        throw new Error("is_abstract is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("is_abstract is a private attribute, it's value can't be changed outside it's class");
     }
 
     get defaults_method() {
@@ -522,7 +391,7 @@ class ClassBlock extends Block {
          */
     } //get
     set defaults_method(val) {
-        throw new Error("defaults_method is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("defaults_method is a private attribute, it's value can't be changed outside it's class");
     }
 
     get constructor_method() {
@@ -539,7 +408,7 @@ class ClassBlock extends Block {
          */
     } //get
     set constructor_method(val) {
-        throw new Error("constructor_method is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("constructor_method is a private attribute, it's value can't be changed outside it's class");
     }
     buildConstructor() {
         throw new Error('Trying to access a private method buildConstructor.');
@@ -581,6 +450,414 @@ ${block}
         this.__constructor_method = false;
     }
 } //class  //class ClassBlock
+class ConstBlock extends Block {
+    //public
+    constructor(type, name, params) {
+        super();
+        this.__set_defaults();
+        this.__configureBlockProps(type, params)
+        this.__name = this.__validName(name, /^[A-Z_]+((\d)|([A-Z0-9]+))*$/, 'SNAKE_CASE_ALL_UPPERCASE.')
+        /**
+         *Opens a CONST block
+         *@returns string
+         */
+    }
+    open() {
+        return this.__open.apply(this, arguments);
+    }
+    __open() {
+        return `static get ${this.__name} () {return ${this.__params}}
+static set ${this.__name} (value) {throw new Error("${this.__name} is a class constant, and can't have his value changed to " + value)}`
+        return this;
+    } // method //method
+
+    __set_defaults() {}
+} //class  //class ConstBlock
+class ConditionalsBlock extends Block {
+    //public
+    /**
+     *@method constructor
+     *@param string type
+     *@param string name
+     *@param string params
+     */
+    constructor(type, name, params) {
+        super();
+        this.__set_defaults();
+        this.__configureBlockProps(type, params)
+        /**
+         *Returns block open
+         *@method open
+         */
+    }
+    open() {
+        return this.__open.apply(this, arguments);
+    }
+    __open() {
+        return `${this.__open_start}${this.__params}${this.__open_finish}`;
+        return this;
+    } // method //method
+
+    //private
+    /**
+     *@attr open_start_if
+     */
+
+    /**
+     *@attr open_start_unless
+     */
+    get open_start_if() {
+        throw new Error("open_start_if is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_start_if(val) {
+        throw new Error("open_start_if is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_start_elseif
+     */
+    get open_start_unless() {
+        throw new Error("open_start_unless is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_start_unless(val) {
+        throw new Error("open_start_unless is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_start_else
+     */
+    get open_start_elseif() {
+        throw new Error("open_start_elseif is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_start_elseif(val) {
+        throw new Error("open_start_elseif is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_start_elseunless
+     */
+    get open_start_else() {
+        throw new Error("open_start_else is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_start_else(val) {
+        throw new Error("open_start_else is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_start_switch
+     */
+    get open_start_elseunless() {
+        throw new Error("open_start_elseunless is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_start_elseunless(val) {
+        throw new Error("open_start_elseunless is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_start_case
+     */
+    get open_start_switch() {
+        throw new Error("open_start_switch is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_start_switch(val) {
+        throw new Error("open_start_switch is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_start_default
+     */
+    get open_start_case() {
+        throw new Error("open_start_case is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_start_case(val) {
+        throw new Error("open_start_case is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_finish_if
+     */
+    get open_start_default() {
+        throw new Error("open_start_default is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_start_default(val) {
+        throw new Error("open_start_default is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_finish_unless
+     */
+    get open_finish_if() {
+        throw new Error("open_finish_if is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_finish_if(val) {
+        throw new Error("open_finish_if is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_finish_elseif
+     */
+    get open_finish_unless() {
+        throw new Error("open_finish_unless is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_finish_unless(val) {
+        throw new Error("open_finish_unless is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_finish_else
+     */
+    get open_finish_elseif() {
+        throw new Error("open_finish_elseif is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_finish_elseif(val) {
+        throw new Error("open_finish_elseif is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_finish_elseunless
+     */
+    get open_finish_else() {
+        throw new Error("open_finish_else is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_finish_else(val) {
+        throw new Error("open_finish_else is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_finish_switch
+     */
+    get open_finish_elseunless() {
+        throw new Error("open_finish_elseunless is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_finish_elseunless(val) {
+        throw new Error("open_finish_elseunless is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_finish_case
+     */
+    get open_finish_switch() {
+        throw new Error("open_finish_switch is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_finish_switch(val) {
+        throw new Error("open_finish_switch is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_finish_default
+     */
+    get open_finish_case() {
+        throw new Error("open_finish_case is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_finish_case(val) {
+        throw new Error("open_finish_case is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr open_start
+     */
+    get open_finish_default() {
+        throw new Error("open_finish_default is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_finish_default(val) {
+        throw new Error("open_finish_default is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    get open_start() {
+        this[`open_start_${this.__type}`]
+        /**
+         *@attr open_finish
+         */
+    } //get
+    set open_start(val) {
+        throw new Error("open_start is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    get open_finish() {
+        this[`open_finish_${this.__type}`]
+    } //get
+    set open_finish(val) {
+        throw new Error("open_finish is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    __set_defaults() {
+        this.__open_start_if = `if`;
+        this.__open_start_unless = `if!`;
+        this.__open_start_elseif = `else if`;
+        this.__open_start_else = `else {`;
+        this.__open_start_elseunless = `else if!`;
+        this.__open_start_switch = `switch `;
+        this.__open_start_case = `case `;
+        this.__open_start_default = `default:`;
+        this.__open_finish_if = ` {`;
+        this.__open_finish_unless = ` {`;
+        this.__open_finish_elseif = ` {`;
+        this.__open_finish_else = ``;
+        this.__open_finish_elseunless = ` {`;
+        this.__open_finish_switch = ` {`;
+        this.__open_finish_case = `:`;
+        this.__open_finish_default = null;
+        this.__open_start = null;
+        this.__open_finish = null;
+    }
+} //class  //class ConditionalsBlock
+class ErrorHandlingBlock extends Block {
+    //public
+    /**
+     *@method constructor
+     *@param string type
+     *@param string params
+     */
+    constructor(type, params) {
+        super();
+        this.__set_defaults();
+        this.__configureBlockProps(type, params)
+        if (!(type == 'is')) {
+            current_error_handling = this
+            /**
+             *@attr bool has_is_inside
+             */
+        } //unless
+    }
+
+    /**
+     *@method open
+     *@returns string
+     */
+    get has_is_inside() {
+        return this.__has_is_inside;
+    }
+    set has_is_inside(val) {
+        this.__has_is_inside = val;
+    }
+    open() {
+        return this.__open.apply(this, arguments);
+    }
+    __open() {
+        return this[`open_${this.__type}`]
+        return this;
+    } // method //method
+
+    //private
+    /**
+     *@attr string open_is
+     */
+
+    get open_is() {
+        current_error_handling.has_is_inside = true;
+        return this.__open_is
+        /**
+         *@attr string open_catch
+         */
+    } //get
+    set open_is(val) {
+        throw new Error("open_is is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr string open_try
+     */
+    get open_catch() {
+        throw new Error("open_catch is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_catch(val) {
+        throw new Error("open_catch is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr string open_finally
+     */
+    get open_try() {
+        throw new Error("open_try is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_try(val) {
+        throw new Error("open_try is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@attr string open_another
+     */
+    get open_finally() {
+        throw new Error("open_finally is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_finally(val) {
+        throw new Error("open_finally is a private attribute, it's value can't be changed outside it's class");
+    }
+
+    /**
+     *@method close
+     *@returns String
+     */
+    get open_another() {
+        throw new Error("open_another is a private attribute, it's value can't be get outside it's class");
+        return undefined;
+    }
+    set open_another(val) {
+        throw new Error("open_another is a private attribute, it's value can't be changed outside it's class");
+    }
+    close() {
+        throw new Error('Trying to access a private method close.');
+    }
+    __close() {
+        return `${this.___close}`
+        return this;
+    } // method //method
+
+    __set_defaults() {
+        this.__has_is_inside = false;
+        this.__open_is = `if ${current_error_handling.params} instanceof ${this.params} {`;
+        this.__open_catch = `catch ${this.params} {`;
+        this.__open_try = 'try {';
+        this.__open_finally = 'finally {';
+        this.__open_another = ' {';
+    }
+} //class  //class ErrorHandlingBlock
+class GetterAndSetterBlock extends Block {
+    //public
+    constructor(type, params) {
+        super();
+        this.__set_defaults();
+        this.__configureBlockProps(type, params)
+        if (type == "set") {
+            current_attr.setter = false
+        } //if
+        if (type == "get") {
+            current_attr.getter = false
+            /**
+             *Opens a CONST block
+             *@returns string
+             */
+        } //if
+    }
+    open() {
+        return this.__open.apply(this, arguments);
+    }
+    __open() {
+        return `${current_visibility == 'static' ? 'static' : ''} ${this.__type} ${current_attr.name} (${this.__params}) {`
+        return this;
+    } // method //method
+
+    __set_defaults() {}
+} //class  //class GetterAndSetterBlock
 class LoopBlock extends Block {
     //public
     /**
@@ -630,20 +907,22 @@ class LoopBlock extends Block {
      *@attr open_repeat
      */
     get is_closing_of_repeat() {
-        throw new Error("is_closing_of_repeat is a private attribute, it's value can't be get outside it's class")
+        throw new Error("is_closing_of_repeat is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set is_closing_of_repeat(val) {
-        throw new Error("is_closing_of_repeat is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("is_closing_of_repeat is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr open_while
      */
     get open_repeat() {
-        throw new Error("open_repeat is a private attribute, it's value can't be get outside it's class")
+        throw new Error("open_repeat is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set open_repeat(val) {
-        throw new Error("open_repeat is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("open_repeat is a private attribute, it's value can't be changed outside it's class");
     }
 
     get open_while() {
@@ -656,7 +935,7 @@ class LoopBlock extends Block {
          */
     } //get
     set open_while(val) {
-        throw new Error("open_while is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("open_while is a private attribute, it's value can't be changed outside it's class");
     }
 
     get open_foreach() {
@@ -666,7 +945,7 @@ class LoopBlock extends Block {
          */
     } //get
     set open_foreach(val) {
-        throw new Error("open_foreach is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("open_foreach is a private attribute, it's value can't be changed outside it's class");
     }
 
     get open_from() {
@@ -677,7 +956,7 @@ class LoopBlock extends Block {
          */
     } //get
     set open_from(val) {
-        throw new Error("open_from is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("open_from is a private attribute, it's value can't be changed outside it's class");
     }
 
     get to_() {
@@ -694,7 +973,7 @@ class LoopBlock extends Block {
          */
     } //get
     set to_(val) {
-        throw new Error("to_ is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("to_ is a private attribute, it's value can't be changed outside it's class");
     }
 
     get from_() {
@@ -711,7 +990,7 @@ class LoopBlock extends Block {
          */
     } //get
     set from_(val) {
-        throw new Error("from_ is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("from_ is a private attribute, it's value can't be changed outside it's class");
     }
 
     get index_var() {
@@ -740,7 +1019,7 @@ class LoopBlock extends Block {
          */
     } //get
     set index_var(val) {
-        throw new Error("index_var is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("index_var is a private attribute, it's value can't be changed outside it's class");
     }
 
     get interator_var() {
@@ -757,7 +1036,7 @@ class LoopBlock extends Block {
          */
     } //get
     set interator_var(val) {
-        throw new Error("interator_var is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("interator_var is a private attribute, it's value can't be changed outside it's class");
     }
 
     get alias_var() {
@@ -773,7 +1052,7 @@ class LoopBlock extends Block {
          */
     } //get
     set alias_var(val) {
-        throw new Error("alias_var is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("alias_var is a private attribute, it's value can't be changed outside it's class");
     }
 
     get step_() {
@@ -786,7 +1065,7 @@ class LoopBlock extends Block {
         return this.__step_
     } //get
     set step_(val) {
-        throw new Error("step_ is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("step_ is a private attribute, it's value can't be changed outside it's class");
     }
 
     __set_defaults() {
@@ -846,6 +1125,17 @@ class MethodBlock extends Block {
         } //if
         return `${ret} ${getter}
 ${current_visibility == "static" ? "static" : ''} __${this.__name}(${this.__params}) { ${default_params_lines}`
+        /**
+         *Set has default params as true
+         *@method hasDefaultParams
+         */
+        return this;
+    } // method //method
+    hasDefaultParams() {
+        return this.__hasDefaultParams.apply(this, arguments);
+    }
+    __hasDefaultParams() {
+        this.__has_default_params = true
         return this;
     } // method //method
 
@@ -858,43 +1148,35 @@ ${current_visibility == "static" ? "static" : ''} __${this.__name}(${this.__para
      *@attr has_default_params
      */
     get has_default_params() {
-        throw new Error("has_default_params is a private attribute, it's value can't be get outside it's class")
+        throw new Error("has_default_params is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set has_default_params(val) {
-        throw new Error("has_default_params is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("has_default_params is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr has_default_params
      */
     get is_function() {
-        throw new Error("is_function is a private attribute, it's value can't be get outside it's class")
+        throw new Error("is_function is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set is_function(val) {
-        throw new Error("is_function is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("is_function is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
-     *Set has default params as true
-     *@method hasDefaultParams
+     *Opens a constructor method
+     *@param string ret
      */
     get has_default_params() {
-        throw new Error("has_default_params is a private attribute, it's value can't be get outside it's class")
+        throw new Error("has_default_params is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set has_default_params(val) {
-        throw new Error("has_default_params is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("has_default_params is a private attribute, it's value can't be changed outside it's class");
     }
-    hasDefaultParams() {
-        throw new Error('Trying to access a private method hasDefaultParams.');
-    }
-    __hasDefaultParams() {
-        this.__has_default_params = true
-        /**
-         *Opens a constructor method
-         *@param string ret
-         */
-        return this;
-    } // method //method
     openConstructor() {
         throw new Error('Trying to access a private method openConstructor.');
     }
@@ -1149,67 +1431,74 @@ class Block extends Object {
      *@attr string
      */
     get type() {
-        throw new Error("type is a private attribute, it's value can't be get outside it's class")
+        throw new Error("type is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set type(val) {
-        throw new Error("type is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("type is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr boolean
      */
     get block_props() {
-        throw new Error("block_props is a private attribute, it's value can't be get outside it's class")
+        throw new Error("block_props is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set block_props(val) {
-        throw new Error("block_props is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("block_props is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr boolean
      */
     get can_be_child() {
-        throw new Error("can_be_child is a private attribute, it's value can't be get outside it's class")
+        throw new Error("can_be_child is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set can_be_child(val) {
-        throw new Error("can_be_child is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("can_be_child is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr array
      */
     get must_be_child() {
-        throw new Error("must_be_child is a private attribute, it's value can't be get outside it's class")
+        throw new Error("must_be_child is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set must_be_child(val) {
-        throw new Error("must_be_child is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("must_be_child is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr string
      */
     get can_be_inside() {
-        throw new Error("can_be_inside is a private attribute, it's value can't be get outside it's class")
+        throw new Error("can_be_inside is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set can_be_inside(val) {
-        throw new Error("can_be_inside is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("can_be_inside is a private attribute, it's value can't be changed outside it's class");
     }
 
     /**
      *@attr string
      */
     get close_code() {
-        throw new Error("close_code is a private attribute, it's value can't be get outside it's class")
+        throw new Error("close_code is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set close_code(val) {
-        throw new Error("close_code is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("close_code is a private attribute, it's value can't be changed outside it's class");
     }
 
     get has_params() {
-        throw new Error("has_params is a private attribute, it's value can't be get outside it's class")
+        throw new Error("has_params is a private attribute, it's value can't be get outside it's class");
+        return undefined;
     }
     set has_params(val) {
-        throw new Error("has_params is a private attribute, it's value can't be changed outside it's class")
+        throw new Error("has_params is a private attribute, it's value can't be changed outside it's class");
     }
 
     constructor() {
