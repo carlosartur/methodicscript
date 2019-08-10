@@ -1,8 +1,5 @@
-use Blocks/AttrBlock
-use Blocks/ClassBlock
-use Blocks/ConditionalsBlock
-use Blocks/ConstBlock
-use Blocks/GetterNSetterBlock
-use Blocks/LoopBlock
-use Blocks/MethodBlock
-use Blocks/VisibilityBlock
+use Blocks/BlockFactory
+
+var fs = require('fs'),
+    beautify = require('js-beautify').js,
+    js_transpiled = [];
