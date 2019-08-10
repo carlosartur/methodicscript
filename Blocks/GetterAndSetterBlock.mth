@@ -8,7 +8,7 @@ class GetterAndSetterBlock:
             if type == "set":
                 current_attr.setter = false
 
-            if type == "get"
+            if type == "get":
                 current_attr.getter = false
 
 
