@@ -37,6 +37,13 @@ class MethodBlock:
             return `${ret} ${getter}
                     ${current_visibility == "static" ? "static" : ''} __${this.name}(${this.params}) { ${default_params_lines}`   
 
+        ###
+        Set has default params as true
+        @method hasDefaultParams
+        ###
+        method hasDefaultParams:
+            this.has_default_params = true
+            
     private:
         ###
         @attr has_default_params
@@ -52,13 +59,6 @@ class MethodBlock:
         @attr has_default_params
         ###
         attr has_default_params = false
-
-        ###
-        Set has default params as true
-        @method hasDefaultParams
-        ###
-        method hasDefaultParams:
-            this.has_default_params = true
 
         ###
         Opens a constructor method
