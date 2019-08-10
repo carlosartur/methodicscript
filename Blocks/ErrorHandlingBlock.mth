@@ -1,6 +1,6 @@
 use Blocks/Block
 
-class ErrorHandling:
+class ErrorHandlingBlock:
     extends Block
     public:
         ###
