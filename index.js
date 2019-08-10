@@ -594,7 +594,7 @@ class _method extends Block {
             throw new Error(`A abstract class can't have a constructor method. On line ${number_line}`);
         }
         current_class._constructor = true;
-        return `${ret} constructor(${this.params}) { super(); this.__set_defaults();`;
+        return `${ret} constructor(${this.params}) {`;
     }
 
     defaultValuesParams() {
@@ -653,8 +653,8 @@ class _attr extends Block {
                 this.getter = `get ${this.name}() { return this.__${this.name}; }`;
                 break;
             case 'private':
-                this.setter = `set ${this.name}(val) { throw new Error("${this.name} is a private attribute, it's value can't be changed outside it's class") }`;
-                this.getter = `get ${this.name}() { throw new Error("${this.name} is a private attribute, it's value can't be get outside it's class") }`;
+                this.setter = `set ${this.name}(val) { throw new Error("${this.name} is a private attribute, it's value can't be changed outside it's class"); }`;
+                this.getter = `get ${this.name}() { throw new Error("${this.name} is a private attribute, it's value can't be get outside it's class"); return undefined; }`;
                 break;
             case 'static':
                 this.setter = `static set ${this.name}(val) { ${current_class.name}.__${this.name} = val; }`;
@@ -1034,7 +1034,7 @@ var closeBlock = (new_stack_size) => {
         let block_closed = block_stack.pop();
         if (block_closed) {
             try {
-                js_transpiled.push(block_closed.close());
+                bruteline(block_closed.close());
             } catch (e) {
                 console.log(block_stack, e, n_line);
             }
@@ -1043,23 +1043,23 @@ var closeBlock = (new_stack_size) => {
 };
 
 var oneLineComment = (line) => {
-    js_transpiled.push(`//${line.replace(/([#])+/, '')}`);
+    bruteline(`//${line.replace(/([#])+/, '')}`);
 };
 
 var comment = (line) => {
-    js_transpiled.push(is_comment ? '*/' : '/**');
+    bruteline(is_comment ? '*/' : '/**');
     is_comment = !is_comment;
 };
 
 var bruteline = (line) => {
     line = line.replaceAll('this.', "this.__")
-    js_transpiled.push(line);
+    (line);
 };
 
 var openClass = (line) => {
     try {
         if (current_class && !current_class.opened) {
-            js_transpiled.push(current_class.open(n_line));
+            bruteline(current_class.open(n_line));
             return current_class.name;
         }
         class_name = line.match(/(class (\w*))/i)[2];
@@ -1098,5 +1098,5 @@ var openBlock = (line, block_type) => {
     if (_block.type == "attr") {
         current_attr = _block;
     }
-    js_transpiled.push(_block.open(n_line, line));
+    bruteline(_block.open(n_line, line));
 };
