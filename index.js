@@ -457,8 +457,23 @@ class _class extends Block {
         this.traits = [];
         this.defaults = {};
         this.abstract = false;
+        this._final = false;
         current_class = this;
         classes[class_name] = this;
+    }
+
+    set final(value) {
+        if (value && this.abstract) {
+            throw new SyntaxError("A class can't be final and abstract at the same time");
+        }
+        this._final = value;
+    }
+
+    get final() {
+        if (this._final && this.abstract) {
+            throw new SyntaxError("A class can't be final and abstract at the same time");
+        }
+        return this._final;
     }
 
     close() {
@@ -473,7 +488,7 @@ class _class extends Block {
         }
         ret += "__set_defaults(){";
         for (var i in this.defaults) {
-            ret += `this.__${i} = ${this.defaults[i]};`;
+            ret += `this.${i} = typeof this.${i} == 'undefined' ? ${this.defaults[i]} : this.${i};`;
         }
         ret += "}";
         current_visibility = '';
@@ -515,14 +530,11 @@ class _class extends Block {
             block += `this.${this.attrs[i]} typeof ${this.attrs[i]} == 'undefined' ? null : ${this.attrs[i]};`;
         }
         if (this.abstract) {
-            block += `
-                if (new.target === ${this.name}) {
-                    throw new TypeError("Cannot construct Abstract instances directly");
-                }`;
+            block += _class.abstractClassConstructor;
         }
         this._constructor = `constructor(${this.attrs.join(', ')}) {
             super();
-            this.__set_defaults();
+            this.set_defaults();
             ${block}
         }`;
         this.methods[0] = this._constructor;
@@ -547,6 +559,20 @@ class _class extends Block {
 
     toString() {
         return this.name;
+    }
+
+    static get abstractClassConstructor() {
+        return `
+                if (new.target === ${this.name}) {
+                    throw new TypeError("Cannot construct Abstract instances directly");
+                }`;
+    }
+
+    static get finalClassConstructor() {
+        return `
+            if (new.target !== ${this.name}) {
+                throw new TypeError("Final classes cannot have children classes.");
+            }`;
     }
 }
 
@@ -573,7 +599,7 @@ class _method extends Block {
         }
         switch (current_visibility) {
             case "public":
-                var getter = `${this.name}() { return this.__${this.name}.apply(this, arguments); }`;
+                var getter = `${this.name}() { return this.${this.name}.apply(this, arguments); }`;
                 break;
             case "private":
                 var getter = `${this.name}() { throw new Error('Trying to access a private method ${this.name}.'); }`;
@@ -594,7 +620,14 @@ class _method extends Block {
             throw new Error(`A abstract class can't have a constructor method. On line ${number_line}`);
         }
         current_class._constructor = true;
-        return `${ret} constructor(${this.params}) {`;
+        return `${ret} constructor(${this.params}) { ${current_class.abstract ? _class.abstractClassConstructor : ''}${current_class.final ? _class.finalClassConstructor : ''}`;
+    }
+
+    close() {
+        if (this.name == 'constructor') {
+            return `this.__set_defaults(); }`;
+        }
+        return super.close();
     }
 
     defaultValuesParams() {
@@ -649,8 +682,8 @@ class _attr extends Block {
         this.name = this.validName(name, /^[a-z_]+((\d)|([a-z0-9]+))*$/, 'snake_case_all_lowercase.');
         switch (current_visibility) {
             case 'public':
-                this.setter = `set ${this.name}(val) { this.__${this.name} = val; }`;
-                this.getter = `get ${this.name}() { return this.__${this.name}; }`;
+                this.setter = `set ${this.name}(val) { this.${this.name} = val; }`;
+                this.getter = `get ${this.name}() { return this.${this.name}; }`;
                 break;
             case 'private':
                 this.setter = `set ${this.name}(val) { throw new Error("${this.name} is a private attribute, it's value can't be changed outside it's class"); }`;
@@ -978,6 +1011,13 @@ var lineToLineTranspiller = (file, path, is_index) => {
             continue;
         }
 
+        if (/^(final)/.test(line)) {
+            js_transpiled.push(`//${line}`);
+            current_class.final = true;
+            openClass(line);
+            continue;
+        }
+
         var is_block = false;
         for (var i in openBlockRegex) {
             var bl_type = i.replaceAll('_'),
@@ -1015,8 +1055,9 @@ var lineToLineTranspiller = (file, path, is_index) => {
         indent_size: 4,
         space_in_empty_paren: true
     }) + '\n';
+
     if (is_index) {
-        fs.writeFile('index.mth.js', final_compilled_js, function (err) {
+        fs.writeFile('index.mth.js', '', function (err) {
             if (err) throw err;
             console.log('Saved index!');
         });
@@ -1052,8 +1093,8 @@ var comment = (line) => {
 };
 
 var bruteline = (line) => {
-    line = line.replaceAll('this.', "this.__")
-    (line);
+    line = line ? line.replace(/(this\.(?![_]{2}))/g, "this.__") : '';
+    js_transpiled.push(line);
 };
 
 var openClass = (line) => {
