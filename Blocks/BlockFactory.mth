@@ -27,7 +27,7 @@ class BlockFactory:
                 blockAttr: ['attr'],
                 blockConst: ['const'],
                 blockSetterAndGetter: ["set", "get"],
-                blockConditional: ["if", "elseif", "unless", "else", "elseunless", "switch", "", "default"],
+                blockConditional: ["if", "elseif", "unless", "else", "elseunless", "switch", "case", "default"],
                 blockLoop: [ "from", "foreach", "while", "repeat"],
                 blockErrorHandling: ["try", "catch", "is", "finally", "another"]
             }
@@ -99,6 +99,3 @@ class BlockFactory:
         ###
         method blockErrorHandling(type, name, params):
             return new ErrorHandlingBlock(type, params)
-
-
-        
