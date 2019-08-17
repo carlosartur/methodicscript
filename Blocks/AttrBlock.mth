@@ -39,10 +39,10 @@ class AttrBlock:
         ###
         method close:
             var ret = ''
-            if this.getter
+            if this.getter:
                 ret += this.getter
 
-            if this.setter
+            if this.setter:
                 ret += this.setter
             return ret
     
