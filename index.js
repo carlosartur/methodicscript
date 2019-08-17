@@ -23,7 +23,9 @@ var fs = require('fs'),
     is_string_regex = /(["'`])(?:(?=(\\?))\2.)*?\1/g,
     n_line,
     files = [],
-    files_already_read = [];
+    files_already_read = [],
+    is_brute_js;
+
 String.prototype.replaceAll = function (search, replacement) {
     replacement = typeof replacement == "undefined" ? '' : replacement;
     var target = this;
@@ -934,7 +936,7 @@ fs.readFile('index.mth', 'UTF-8', (err, contents) => {
 var lineToLineTranspiller = (file, path, is_index) => {
     path = typeof path == 'undefined' ? false : path;
     is_index = typeof is_index == 'undefined' ? true : is_index;
-
+    is_brute_js = false;
     if (path) {
         fs.readFile(path, 'UTF-8', (err, contents) => {
             if (!contents) {
@@ -971,10 +973,22 @@ var lineToLineTranspiller = (file, path, is_index) => {
             continue;
         }
 
+        if (/^(javascript:)/g.test(line) || /^(\/javascript)/g.test(line)) {
+            bruteJsToggle();
+            bruteline(`/** ${line} */`);
+            continue;
+        }
+
+        if (is_brute_js) {
+            bruteline(line);
+            continue;
+        }
+
         if (/^(###)+/g.test(line)) {
             comment(line);
             continue;
         }
+
         if (is_comment) {
             bruteline(" *" + line);
             continue;
@@ -1091,6 +1105,10 @@ var comment = (line) => {
     bruteline(is_comment ? '*/' : '/**');
     is_comment = !is_comment;
 };
+
+var bruteJsToggle = () => {
+    is_brute_js = !is_brute_js;
+}
 
 var bruteline = (line) => {
     line = line ? line.replace(/(this\.(?![_]{2}))/g, "this.__") : '';
